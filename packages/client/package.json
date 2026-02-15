@@ -1,17 +1,29 @@
 {
   "name": "@claude-chat/client",
   "version": "0.0.1",
-  "private": true,
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "dev": "tsc --watch --preserveWatchOutput",
     "build": "tsc",
+    "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mitchmyburgh/cclusterui.git",
+    "directory": "packages/client"
+  },
+  "files": [
+    "dist"
+  ],
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.2.42",
     "@claude-chat/shared": "workspace:*"

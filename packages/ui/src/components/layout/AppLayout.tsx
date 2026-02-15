@@ -3,14 +3,16 @@ import { useAuth } from "../../context/AuthContext";
 import { createApiClient } from "../../lib/api";
 import { ChatList } from "../chat/ChatList";
 import { ChatPanel } from "../chat/ChatPanel";
+import { SettingsPanel } from "../settings/SettingsPanel";
 import type { Chat } from "@claude-chat/shared";
 
 export function AppLayout() {
-  const { apiKey, logout } = useAuth();
+  const { apiKey, user, logout } = useAuth();
   const api = useMemo(() => createApiClient(apiKey!), [apiKey]);
   const [chats, setChats] = useState<Chat[]>([]);
   const [openPanels, setOpenPanels] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
 
   // Fetch chats on mount
   useState(() => {
@@ -60,6 +62,13 @@ export function AppLayout() {
               + New
             </button>
             <button
+              onClick={() => setShowSettings(true)}
+              className="rounded-md bg-gray-700 px-3 py-1.5 text-sm text-gray-300 hover:bg-gray-600 transition-colors"
+              title="Settings"
+            >
+              Settings
+            </button>
+            <button
               onClick={logout}
               className="rounded-md bg-gray-700 px-3 py-1.5 text-sm text-gray-300 hover:bg-gray-600 transition-colors"
             >
@@ -67,6 +76,12 @@ export function AppLayout() {
             </button>
           </div>
         </div>
+        {user && user.username !== "system" && (
+          <div className="border-b border-gray-700 px-4 py-2">
+            <span className="text-xs text-gray-400">Signed in as </span>
+            <span className="text-xs text-white font-medium">{user.username}</span>
+          </div>
+        )}
         <ChatList
           chats={chats}
           activeChatIds={openPanels}
@@ -78,7 +93,11 @@ export function AppLayout() {
 
       {/* Panels */}
       <main className="flex flex-1">
-        {openPanels.length === 0 ? (
+        {showSettings ? (
+          <div className="flex-1">
+            <SettingsPanel onClose={() => setShowSettings(false)} />
+          </div>
+        ) : openPanels.length === 0 ? (
           <div className="flex flex-1 items-center justify-center text-gray-500">
             <p>Select or create a chat to get started</p>
           </div>

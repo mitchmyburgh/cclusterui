@@ -15,11 +15,21 @@ describe("Auth middleware", () => {
     addMessage: vi.fn(),
     getMessages: vi.fn(),
     getMessage: vi.fn(),
+    createUser: vi.fn(),
+    getUserByUsername: vi.fn(),
+    getUserById: vi.fn(),
+    createApiKey: vi.fn(),
+    getApiKeyByHash: vi.fn(),
+    listApiKeys: vi.fn(),
+    revokeApiKey: vi.fn(),
+    updateApiKeyLastUsed: vi.fn(),
   } as any;
 
   const mockClientManager: ClientManager = {} as any;
 
   beforeEach(() => {
+    vi.clearAllMocks();
+
     const context: AppContext = {
       repo: mockRepo,
       clientManager: mockClientManager,
@@ -28,6 +38,8 @@ describe("Auth middleware", () => {
         host: "0.0.0.0",
         apiKeys: ["test-api-key-123", "another-valid-key"],
         anthropicApiKey: "test-anthropic-key",
+        jwtSecret: "",
+        allowedUsernames: [],
         db: {
           driver: "sqlite",
           sqlitePath: ":memory:",
@@ -53,7 +65,7 @@ describe("Auth middleware", () => {
     const data = await res.json();
     expect(data).toMatchObject({
       error: "Unauthorized",
-      code: "INVALID_API_KEY",
+      code: "MISSING_TOKEN",
       status: 401,
     });
   });
@@ -69,13 +81,12 @@ describe("Auth middleware", () => {
     const data = await res.json();
     expect(data).toMatchObject({
       error: "Unauthorized",
-      code: "INVALID_API_KEY",
+      code: "INVALID_TOKEN",
       status: 401,
     });
   });
 
-  it("should pass auth with valid Bearer token", async () => {
-    // Mock the listChats method to return data
+  it("should pass auth with valid legacy Bearer token", async () => {
     (mockRepo.listChats as any).mockResolvedValue({
       chats: [],
       total: 0,
@@ -87,15 +98,13 @@ describe("Auth middleware", () => {
       },
     });
 
-    // Should not return 401
     expect(res.status).not.toBe(401);
-    // Should successfully return data (200)
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data).toEqual({ data: [], total: 0 });
   });
 
-  it("should pass auth with another valid Bearer token", async () => {
+  it("should pass auth with another valid legacy Bearer token", async () => {
     (mockRepo.listChats as any).mockResolvedValue({
       chats: [],
       total: 0,
@@ -127,6 +136,7 @@ describe("Auth middleware", () => {
       id: "chat-1",
       title: "Test Chat",
       sessionId: null,
+      userId: "system",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
@@ -143,5 +153,19 @@ describe("Auth middleware", () => {
     expect(res.status).toBe(201);
     const data = await res.json();
     expect(data.data.title).toBe("Test Chat");
+  });
+
+  it("should allow access to /api/auth/login without auth", async () => {
+    (mockRepo.getUserByUsername as any).mockResolvedValue(null);
+
+    const res = await app.request("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: "test", password: "pass" }),
+    });
+
+    // Should not be 401 (auth routes are public)
+    // Will be 500 because JWT_SECRET is empty, but NOT 401
+    expect(res.status).toBe(500);
   });
 });

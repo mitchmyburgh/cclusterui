@@ -1,66 +1,35 @@
-import Database from "better-sqlite3";
 import { SqliteRepository } from "../sql/sqlite-repository.js";
-import type { Chat, Message } from "@claude-chat/shared";
 
 describe("SqliteRepository", () => {
-  let db: Database.Database;
   let repo: SqliteRepository;
+  const testUserId = "test-user-id";
 
   beforeEach(() => {
-    // Create in-memory database for each test
-    db = new Database(":memory:");
-    repo = new (SqliteRepository as any)({ path: ":memory:" });
-    // Override the sqlite instance to use our in-memory db
-    (repo as any).sqlite = db;
-
-    // Re-initialize tables with our db instance
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS chats (
-        id TEXT PRIMARY KEY,
-        title TEXT NOT NULL,
-        session_id TEXT,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-      )
-    `);
-
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS messages (
-        id TEXT PRIMARY KEY,
-        chat_id TEXT NOT NULL,
-        role TEXT NOT NULL,
-        content TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        metadata TEXT
-      )
-    `);
-  });
-
-  afterEach(() => {
-    db.close();
+    repo = new SqliteRepository({ path: ":memory:" });
   });
 
   describe("Chat CRUD operations", () => {
     it("should create a chat", async () => {
-      const chat = await repo.createChat({ title: "Test Chat" });
+      const chat = await repo.createChat({ title: "Test Chat" }, testUserId);
 
       expect(chat).toBeDefined();
       expect(chat.id).toBeDefined();
       expect(chat.title).toBe("Test Chat");
       expect(chat.sessionId).toBeNull();
+      expect(chat.userId).toBe(testUserId);
       expect(chat.createdAt).toBeDefined();
       expect(chat.updatedAt).toBeDefined();
     });
 
     it("should create a chat with default title", async () => {
-      const chat = await repo.createChat({});
+      const chat = await repo.createChat({}, testUserId);
 
       expect(chat.title).toBe("New Chat");
     });
 
     it("should get a chat by id", async () => {
-      const created = await repo.createChat({ title: "Test Chat" });
-      const retrieved = await repo.getChat(created.id);
+      const created = await repo.createChat({ title: "Test Chat" }, testUserId);
+      const retrieved = await repo.getChat(created.id, testUserId);
 
       expect(retrieved).toBeDefined();
       expect(retrieved?.id).toBe(created.id);
@@ -68,38 +37,57 @@ describe("SqliteRepository", () => {
     });
 
     it("should return null for non-existent chat", async () => {
-      const chat = await repo.getChat("non-existent-id");
+      const chat = await repo.getChat("non-existent-id", testUserId);
 
       expect(chat).toBeNull();
     });
 
-    it("should list chats", async () => {
-      await repo.createChat({ title: "Chat 1" });
-      await repo.createChat({ title: "Chat 2" });
-      await repo.createChat({ title: "Chat 3" });
+    it("should not return chat for wrong user", async () => {
+      const created = await repo.createChat({ title: "Test Chat" }, testUserId);
+      const retrieved = await repo.getChat(created.id, "other-user");
 
-      const result = await repo.listChats();
+      expect(retrieved).toBeNull();
+    });
+
+    it("should list chats", async () => {
+      await repo.createChat({ title: "Chat 1" }, testUserId);
+      await repo.createChat({ title: "Chat 2" }, testUserId);
+      await repo.createChat({ title: "Chat 3" }, testUserId);
+
+      const result = await repo.listChats(testUserId);
 
       expect(result.chats).toHaveLength(3);
       expect(result.total).toBe(3);
     });
 
-    it("should list chats with pagination", async () => {
-      await repo.createChat({ title: "Chat 1" });
-      await repo.createChat({ title: "Chat 2" });
-      await repo.createChat({ title: "Chat 3" });
+    it("should isolate chats by user", async () => {
+      await repo.createChat({ title: "User A Chat" }, "user-a");
+      await repo.createChat({ title: "User B Chat" }, "user-b");
 
-      const result = await repo.listChats({ limit: 2, offset: 1 });
+      const resultA = await repo.listChats("user-a");
+      const resultB = await repo.listChats("user-b");
+
+      expect(resultA.chats).toHaveLength(1);
+      expect(resultA.chats[0].title).toBe("User A Chat");
+      expect(resultB.chats).toHaveLength(1);
+      expect(resultB.chats[0].title).toBe("User B Chat");
+    });
+
+    it("should list chats with pagination", async () => {
+      await repo.createChat({ title: "Chat 1" }, testUserId);
+      await repo.createChat({ title: "Chat 2" }, testUserId);
+      await repo.createChat({ title: "Chat 3" }, testUserId);
+
+      const result = await repo.listChats(testUserId, { limit: 2, offset: 1 });
 
       expect(result.chats).toHaveLength(2);
       expect(result.total).toBe(3);
     });
 
     it("should update a chat", async () => {
-      const chat = await repo.createChat({ title: "Original Title" });
-      // Small delay to ensure updatedAt changes
+      const chat = await repo.createChat({ title: "Original Title" }, testUserId);
       await new Promise((resolve) => setTimeout(resolve, 10));
-      const updated = await repo.updateChat(chat.id, { title: "Updated Title" });
+      const updated = await repo.updateChat(chat.id, testUserId, { title: "Updated Title" });
 
       expect(updated).toBeDefined();
       expect(updated?.title).toBe("Updated Title");
@@ -107,32 +95,32 @@ describe("SqliteRepository", () => {
     });
 
     it("should return null when updating non-existent chat", async () => {
-      const result = await repo.updateChat("non-existent-id", { title: "Test" });
+      const result = await repo.updateChat("non-existent-id", testUserId, { title: "Test" });
 
       expect(result).toBeNull();
     });
 
     it("should delete a chat and return true", async () => {
-      const chat = await repo.createChat({ title: "Test Chat" });
-      const deleted = await repo.deleteChat(chat.id);
+      const chat = await repo.createChat({ title: "Test Chat" }, testUserId);
+      const deleted = await repo.deleteChat(chat.id, testUserId);
 
       expect(deleted).toBe(true);
 
-      const retrieved = await repo.getChat(chat.id);
+      const retrieved = await repo.getChat(chat.id, testUserId);
       expect(retrieved).toBeNull();
     });
 
     it("should return false when deleting non-existent chat", async () => {
-      const deleted = await repo.deleteChat("non-existent-id");
+      const deleted = await repo.deleteChat("non-existent-id", testUserId);
 
       expect(deleted).toBe(false);
     });
 
     it("should set chat session", async () => {
-      const chat = await repo.createChat({ title: "Test Chat" });
+      const chat = await repo.createChat({ title: "Test Chat" }, testUserId);
       await repo.setChatSession(chat.id, "session-123");
 
-      const retrieved = await repo.getChat(chat.id);
+      const retrieved = await repo.getChat(chat.id, testUserId);
       expect(retrieved?.sessionId).toBe("session-123");
     });
   });
@@ -141,7 +129,7 @@ describe("SqliteRepository", () => {
     let chatId: string;
 
     beforeEach(async () => {
-      const chat = await repo.createChat({ title: "Test Chat" });
+      const chat = await repo.createChat({ title: "Test Chat" }, testUserId);
       chatId = chat.id;
     });
 
@@ -196,11 +184,106 @@ describe("SqliteRepository", () => {
       await repo.addMessage(chatId, "user", [{ type: "text", text: "Message 1" }]);
       await repo.addMessage(chatId, "assistant", [{ type: "text", text: "Message 2" }]);
 
-      await repo.deleteChat(chatId);
+      await repo.deleteChat(chatId, testUserId);
 
       const result = await repo.getMessages(chatId);
       expect(result.messages).toHaveLength(0);
       expect(result.total).toBe(0);
+    });
+  });
+
+  describe("User operations", () => {
+    it("should create a user", async () => {
+      const user = await repo.createUser("testuser", "hashed-password");
+
+      expect(user).toBeDefined();
+      expect(user.id).toBeDefined();
+      expect(user.username).toBe("testuser");
+      expect(user.createdAt).toBeDefined();
+    });
+
+    it("should get a user by username", async () => {
+      await repo.createUser("testuser", "hashed-password");
+      const found = await repo.getUserByUsername("testuser");
+
+      expect(found).toBeDefined();
+      expect(found?.username).toBe("testuser");
+      expect(found?.passwordHash).toBe("hashed-password");
+    });
+
+    it("should return null for non-existent username", async () => {
+      const found = await repo.getUserByUsername("nonexistent");
+      expect(found).toBeNull();
+    });
+
+    it("should get a user by id", async () => {
+      const created = await repo.createUser("testuser", "hashed-password");
+      const found = await repo.getUserById(created.id);
+
+      expect(found).toBeDefined();
+      expect(found?.username).toBe("testuser");
+    });
+  });
+
+  describe("API key operations", () => {
+    let userId: string;
+
+    beforeEach(async () => {
+      const user = await repo.createUser("testuser", "hashed-password");
+      userId = user.id;
+    });
+
+    it("should create an API key", async () => {
+      const key = await repo.createApiKey(userId, "hash123", "cck_abc", "My Key");
+
+      expect(key).toBeDefined();
+      expect(key.id).toBeDefined();
+      expect(key.userId).toBe(userId);
+      expect(key.name).toBe("My Key");
+      expect(key.keyPrefix).toBe("cck_abc");
+      expect(key.revokedAt).toBeNull();
+    });
+
+    it("should find API key by hash", async () => {
+      await repo.createApiKey(userId, "hash123", "cck_abc", "My Key");
+      const found = await repo.getApiKeyByHash("hash123");
+
+      expect(found).toBeDefined();
+      expect(found?.userId).toBe(userId);
+    });
+
+    it("should not find revoked API key by hash", async () => {
+      const key = await repo.createApiKey(userId, "hash123", "cck_abc", "My Key");
+      await repo.revokeApiKey(key.id, userId);
+      const found = await repo.getApiKeyByHash("hash123");
+
+      expect(found).toBeNull();
+    });
+
+    it("should list API keys for a user", async () => {
+      await repo.createApiKey(userId, "hash1", "cck_a", "Key 1");
+      await repo.createApiKey(userId, "hash2", "cck_b", "Key 2");
+
+      const keys = await repo.listApiKeys(userId);
+      expect(keys).toHaveLength(2);
+    });
+
+    it("should revoke an API key", async () => {
+      const key = await repo.createApiKey(userId, "hash123", "cck_abc", "My Key");
+      const result = await repo.revokeApiKey(key.id, userId);
+
+      expect(result).toBe(true);
+
+      const keys = await repo.listApiKeys(userId);
+      expect(keys[0].revokedAt).not.toBeNull();
+    });
+
+    it("should update API key last used", async () => {
+      const key = await repo.createApiKey(userId, "hash123", "cck_abc", "My Key");
+      await repo.updateApiKeyLastUsed(key.id);
+
+      const keys = await repo.listApiKeys(userId);
+      expect(keys[0].lastUsedAt).not.toBeNull();
     });
   });
 });

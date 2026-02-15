@@ -1,12 +1,12 @@
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import { ApiKeyModal } from "./components/auth/ApiKeyModal";
+import { LoginForm } from "./components/auth/LoginForm";
 import { AppLayout } from "./components/layout/AppLayout";
 
 function AppContent() {
-  const { isAuthenticated, setApiKey } = useAuth();
+  const { isAuthenticated, login, setApiKey } = useAuth();
 
   if (!isAuthenticated) {
-    return <ApiKeyModal onSubmit={setApiKey} />;
+    return <LoginForm onLogin={login} onApiKey={setApiKey} />;
   }
 
   return <AppLayout />;

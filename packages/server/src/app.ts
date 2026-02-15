@@ -3,7 +3,9 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { authMiddleware } from "./middleware/auth.js";
+import { auth } from "./routes/auth.js";
 import { chats } from "./routes/chats.js";
+import { keys } from "./routes/keys.js";
 import { messages } from "./routes/messages.js";
 import { createWsRoutes } from "./routes/ws.js";
 import type { AppEnv } from "./types.js";
@@ -33,12 +35,16 @@ export function createApp(context: AppContext, upgradeWebSocket?: any) {
     await next();
   });
 
-  // Auth for all /api routes
-  app.use("/api/*", authMiddleware(context.config.apiKeys));
+  // Public auth routes (before auth middleware)
+  app.route("/api", auth);
 
-  // Register routes
+  // Auth for all other /api routes
+  app.use("/api/*", authMiddleware(context.config, context.repo));
+
+  // Protected routes
   app.route("/api", chats);
   app.route("/api", messages);
+  app.route("/api", keys);
 
   if (upgradeWebSocket) {
     app.route("/api", createWsRoutes(upgradeWebSocket));

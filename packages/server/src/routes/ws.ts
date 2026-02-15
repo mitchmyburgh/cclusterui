@@ -10,10 +10,19 @@ export function createWsRoutes(upgradeWebSocket: any) {
     const chatId = c.req.param("id");
     const repo = c.get("repo");
     const clientManager = c.get("clientManager");
+    const userId = c.get("userId");
 
     return {
-      onOpen(_evt: any, wsCtx: any) {
-        console.log(`WS connected: chat ${chatId}`);
+      async onOpen(_evt: any, wsCtx: any) {
+        // Verify chat ownership
+        const chat = await repo.getChat(chatId, userId);
+        if (!chat) {
+          const errorEvent: WSServerEvent = { type: "error", error: "Chat not found" };
+          wsCtx.send(JSON.stringify(errorEvent));
+          wsCtx.close();
+          return;
+        }
+        console.log(`WS connected: chat ${chatId} (user ${userId})`);
       },
 
       async onMessage(evt: any, wsCtx: any) {
@@ -21,12 +30,19 @@ export function createWsRoutes(upgradeWebSocket: any) {
           const event: WSClientEvent = JSON.parse(typeof evt.data === "string" ? evt.data : evt.data.toString());
 
           if (event.type === "send_message") {
+            // Verify chat ownership
+            const chat = await repo.getChat(chatId, userId);
+            if (!chat) {
+              const errorEvent: WSServerEvent = { type: "error", error: "Chat not found" };
+              wsCtx.send(JSON.stringify(errorEvent));
+              return;
+            }
+
             // Persist user message
             const userMsg = await repo.addMessage(chatId, "user", event.content);
 
             // Get chat session ID
-            const chat = await repo.getChat(chatId);
-            const sessionId = chat?.sessionId || null;
+            const sessionId = chat.sessionId || null;
 
             // Generate message ID for streaming
             const assistantMsgId = crypto.randomUUID();
@@ -81,7 +97,7 @@ export function createWsRoutes(upgradeWebSocket: any) {
                 // Update chat title if it's the first message
                 if (!chat?.sessionId) {
                   const title = result.text.substring(0, 50).split("\n")[0] || "Chat";
-                  await repo.updateChat(chatId, { title });
+                  await repo.updateChat(chatId, userId, { title });
                 }
 
                 const completeEvent: WSServerEvent = { type: "message_complete", message: assistantMsg };

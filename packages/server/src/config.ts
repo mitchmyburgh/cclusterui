@@ -5,6 +5,8 @@ export interface ServerConfig {
   host: string;
   apiKeys: string[];
   anthropicApiKey: string;
+  jwtSecret: string;
+  allowedUsernames: string[];
   db: {
     driver: "sqlite" | "postgres" | "mysql" | "mongodb";
     sqlitePath?: string;
@@ -16,11 +18,18 @@ export interface ServerConfig {
 }
 
 export function loadConfig(): ServerConfig {
+  const jwtSecret = process.env.JWT_SECRET || "";
+  if (!jwtSecret) {
+    console.warn("WARNING: JWT_SECRET not set. JWT auth will be disabled.");
+  }
+
   return {
     port: parseInt(process.env.PORT || "3000", 10),
     host: process.env.HOST || "0.0.0.0",
     apiKeys: (process.env.API_KEYS || "").split(",").filter(Boolean),
     anthropicApiKey: process.env.ANTHROPIC_API_KEY || "",
+    jwtSecret,
+    allowedUsernames: (process.env.ALLOWED_USERNAMES || "").split(",").filter(Boolean),
     db: {
       driver: (process.env.DB_DRIVER as ServerConfig["db"]["driver"]) || "sqlite",
       sqlitePath: process.env.SQLITE_PATH || "./data/claude-chat.db",

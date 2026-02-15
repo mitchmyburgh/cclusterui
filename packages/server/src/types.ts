@@ -5,6 +5,9 @@ import type { ServerConfig } from "./config.js";
 export type AppEnv = {
   Variables: {
     apiKey: string;
+    userId: string;
+    username: string;
+    authType: "jwt" | "api_key" | "legacy";
     repo: ChatRepository;
     clientManager: ClientManager;
     config: ServerConfig;

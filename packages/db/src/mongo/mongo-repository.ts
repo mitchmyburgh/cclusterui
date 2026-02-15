@@ -9,6 +9,8 @@ import type {
   MessageContent,
   MessageMetadata,
   PaginationParams,
+  User,
+  ApiKey,
 } from "@claude-chat/shared";
 import { DEFAULT_CHAT_TITLE, DEFAULT_PAGE_SIZE } from "@claude-chat/shared";
 
@@ -16,6 +18,7 @@ interface ChatDoc {
   _id: string;
   title: string;
   sessionId: string | null;
+  userId: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -29,11 +32,32 @@ interface MessageDoc {
   metadata?: MessageMetadata;
 }
 
+interface UserDoc {
+  _id: string;
+  username: string;
+  passwordHash: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ApiKeyDoc {
+  _id: string;
+  userId: string;
+  keyHash: string;
+  keyPrefix: string;
+  name: string;
+  createdAt: string;
+  lastUsedAt: string | null;
+  revokedAt: string | null;
+}
+
 export class MongoRepository implements ChatRepository {
   private client: MongoClient;
   private db!: Db;
   private chats!: Collection<ChatDoc>;
   private messages!: Collection<MessageDoc>;
+  private users!: Collection<UserDoc>;
+  private apiKeys!: Collection<ApiKeyDoc>;
 
   constructor(config: { connectionString: string; dbName?: string }) {
     this.client = new MongoClient(config.connectionString);
@@ -44,10 +68,16 @@ export class MongoRepository implements ChatRepository {
     this.db = this.client.db();
     this.chats = this.db.collection<ChatDoc>("chats");
     this.messages = this.db.collection<MessageDoc>("messages");
+    this.users = this.db.collection<UserDoc>("users");
+    this.apiKeys = this.db.collection<ApiKeyDoc>("apiKeys");
 
     // Create indexes
     await this.messages.createIndex({ chatId: 1 });
     await this.chats.createIndex({ updatedAt: -1 });
+    await this.chats.createIndex({ userId: 1 });
+    await this.users.createIndex({ username: 1 }, { unique: true });
+    await this.apiKeys.createIndex({ keyHash: 1 }, { unique: true });
+    await this.apiKeys.createIndex({ userId: 1 });
   }
 
   private chatDocToChat(doc: ChatDoc): Chat {
@@ -55,6 +85,7 @@ export class MongoRepository implements ChatRepository {
       id: doc._id,
       title: doc.title,
       sessionId: doc.sessionId,
+      userId: doc.userId,
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,
     };
@@ -71,12 +102,36 @@ export class MongoRepository implements ChatRepository {
     };
   }
 
-  async createChat(input: CreateChatInput): Promise<Chat> {
+  private userDocToUser(doc: UserDoc): User {
+    return {
+      id: doc._id,
+      username: doc.username,
+      createdAt: doc.createdAt,
+      updatedAt: doc.updatedAt,
+    };
+  }
+
+  private apiKeyDocToApiKey(doc: ApiKeyDoc): ApiKey {
+    return {
+      id: doc._id,
+      userId: doc.userId,
+      name: doc.name,
+      keyPrefix: doc.keyPrefix,
+      createdAt: doc.createdAt,
+      lastUsedAt: doc.lastUsedAt,
+      revokedAt: doc.revokedAt,
+    };
+  }
+
+  // Chat operations
+
+  async createChat(input: CreateChatInput, userId: string): Promise<Chat> {
     const now = new Date().toISOString();
     const doc: ChatDoc = {
       _id: randomUUID(),
       title: input.title || DEFAULT_CHAT_TITLE,
       sessionId: null,
+      userId,
       createdAt: now,
       updatedAt: now,
     };
@@ -86,26 +141,26 @@ export class MongoRepository implements ChatRepository {
     return this.chatDocToChat(doc);
   }
 
-  async getChat(id: string): Promise<Chat | null> {
-    const doc = await this.chats.findOne({ _id: id });
+  async getChat(id: string, userId: string): Promise<Chat | null> {
+    const doc = await this.chats.findOne({ _id: id, userId });
     if (!doc) {
       return null;
     }
     return this.chatDocToChat(doc);
   }
 
-  async listChats(params?: PaginationParams): Promise<{ chats: Chat[]; total: number }> {
+  async listChats(userId: string, params?: PaginationParams): Promise<{ chats: Chat[]; total: number }> {
     const limit = params?.limit ?? DEFAULT_PAGE_SIZE;
     const offset = params?.offset ?? 0;
 
     const docs = await this.chats
-      .find()
+      .find({ userId })
       .sort({ updatedAt: -1 })
       .skip(offset)
       .limit(limit)
       .toArray();
 
-    const total = await this.chats.countDocuments();
+    const total = await this.chats.countDocuments({ userId });
 
     return {
       chats: docs.map((doc) => this.chatDocToChat(doc)),
@@ -113,11 +168,11 @@ export class MongoRepository implements ChatRepository {
     };
   }
 
-  async updateChat(id: string, input: UpdateChatInput): Promise<Chat | null> {
+  async updateChat(id: string, userId: string, input: UpdateChatInput): Promise<Chat | null> {
     const updatedAt = new Date().toISOString();
 
     const result = await this.chats.findOneAndUpdate(
-      { _id: id },
+      { _id: id, userId },
       {
         $set: {
           ...(input.title !== undefined && { title: input.title }),
@@ -134,8 +189,8 @@ export class MongoRepository implements ChatRepository {
     return this.chatDocToChat(result);
   }
 
-  async deleteChat(id: string): Promise<boolean> {
-    const chat = await this.getChat(id);
+  async deleteChat(id: string, userId: string): Promise<boolean> {
+    const chat = await this.getChat(id, userId);
     if (!chat) {
       return false;
     }
@@ -144,7 +199,7 @@ export class MongoRepository implements ChatRepository {
     await this.messages.deleteMany({ chatId: id });
 
     // Delete chat
-    await this.chats.deleteOne({ _id: id });
+    await this.chats.deleteOne({ _id: id, userId });
 
     return true;
   }
@@ -162,6 +217,8 @@ export class MongoRepository implements ChatRepository {
       }
     );
   }
+
+  // Message operations
 
   async addMessage(
     chatId: string,
@@ -215,5 +272,109 @@ export class MongoRepository implements ChatRepository {
       return null;
     }
     return this.messageDocToMessage(doc);
+  }
+
+  // User operations
+
+  async createUser(username: string, passwordHash: string): Promise<User> {
+    const now = new Date().toISOString();
+    const doc: UserDoc = {
+      _id: randomUUID(),
+      username,
+      passwordHash,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await this.users.insertOne(doc);
+
+    return this.userDocToUser(doc);
+  }
+
+  async getUserByUsername(username: string): Promise<(User & { passwordHash: string }) | null> {
+    const doc = await this.users.findOne({ username });
+    if (!doc) {
+      return null;
+    }
+
+    return {
+      id: doc._id,
+      username: doc.username,
+      passwordHash: doc.passwordHash,
+      createdAt: doc.createdAt,
+      updatedAt: doc.updatedAt,
+    };
+  }
+
+  async getUserById(id: string): Promise<User | null> {
+    const doc = await this.users.findOne({ _id: id });
+    if (!doc) {
+      return null;
+    }
+
+    return this.userDocToUser(doc);
+  }
+
+  // API key operations
+
+  async createApiKey(userId: string, keyHash: string, keyPrefix: string, name: string): Promise<ApiKey> {
+    const now = new Date().toISOString();
+    const doc: ApiKeyDoc = {
+      _id: randomUUID(),
+      userId,
+      keyHash,
+      keyPrefix,
+      name,
+      createdAt: now,
+      lastUsedAt: null,
+      revokedAt: null,
+    };
+
+    await this.apiKeys.insertOne(doc);
+
+    return this.apiKeyDocToApiKey(doc);
+  }
+
+  async getApiKeyByHash(keyHash: string): Promise<(ApiKey & { userId: string }) | null> {
+    const doc = await this.apiKeys.findOne({ keyHash, revokedAt: null });
+    if (!doc) {
+      return null;
+    }
+
+    return {
+      id: doc._id,
+      userId: doc.userId,
+      name: doc.name,
+      keyPrefix: doc.keyPrefix,
+      createdAt: doc.createdAt,
+      lastUsedAt: doc.lastUsedAt,
+      revokedAt: doc.revokedAt,
+    };
+  }
+
+  async listApiKeys(userId: string): Promise<ApiKey[]> {
+    const docs = await this.apiKeys
+      .find({ userId })
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    return docs.map((doc) => this.apiKeyDocToApiKey(doc));
+  }
+
+  async revokeApiKey(id: string, userId: string): Promise<boolean> {
+    const result = await this.apiKeys.findOneAndUpdate(
+      { _id: id, userId },
+      { $set: { revokedAt: new Date().toISOString() } },
+      { returnDocument: "after" }
+    );
+
+    return result !== null;
+  }
+
+  async updateApiKeyLastUsed(id: string): Promise<void> {
+    await this.apiKeys.updateOne(
+      { _id: id },
+      { $set: { lastUsedAt: new Date().toISOString() } }
+    );
   }
 }

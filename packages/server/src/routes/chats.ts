@@ -6,24 +6,27 @@ const chats = new Hono<AppEnv>();
 // GET /chats - list chats
 chats.get("/chats", async (c) => {
   const repo = c.get("repo");
+  const userId = c.get("userId");
   const limit = Number(c.req.query("limit")) || 50;
   const offset = Number(c.req.query("offset")) || 0;
-  const result = await repo.listChats({ limit, offset });
+  const result = await repo.listChats(userId, { limit, offset });
   return c.json({ data: result.chats, total: result.total });
 });
 
 // POST /chats - create chat
 chats.post("/chats", async (c) => {
   const repo = c.get("repo");
+  const userId = c.get("userId");
   const body = await c.req.json().catch(() => ({}));
-  const chat = await repo.createChat(body);
+  const chat = await repo.createChat(body, userId);
   return c.json({ data: chat }, 201);
 });
 
 // GET /chats/:id - get chat
 chats.get("/chats/:id", async (c) => {
   const repo = c.get("repo");
-  const chat = await repo.getChat(c.req.param("id"));
+  const userId = c.get("userId");
+  const chat = await repo.getChat(c.req.param("id"), userId);
   if (!chat) return c.json({ error: "Chat not found", code: "NOT_FOUND", status: 404 }, 404);
   return c.json({ data: chat });
 });
@@ -31,8 +34,9 @@ chats.get("/chats/:id", async (c) => {
 // PATCH /chats/:id - update chat
 chats.patch("/chats/:id", async (c) => {
   const repo = c.get("repo");
+  const userId = c.get("userId");
   const body = await c.req.json();
-  const chat = await repo.updateChat(c.req.param("id"), body);
+  const chat = await repo.updateChat(c.req.param("id"), userId, body);
   if (!chat) return c.json({ error: "Chat not found", code: "NOT_FOUND", status: 404 }, 404);
   return c.json({ data: chat });
 });
@@ -40,7 +44,8 @@ chats.patch("/chats/:id", async (c) => {
 // DELETE /chats/:id - delete chat
 chats.delete("/chats/:id", async (c) => {
   const repo = c.get("repo");
-  const deleted = await repo.deleteChat(c.req.param("id"));
+  const userId = c.get("userId");
+  const deleted = await repo.deleteChat(c.req.param("id"), userId);
   if (!deleted) return c.json({ error: "Chat not found", code: "NOT_FOUND", status: 404 }, 404);
   return c.body(null, 204);
 });

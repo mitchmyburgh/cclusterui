@@ -7,3 +7,9 @@ export interface ApiError {
   code: string;
   status: number;
 }
+
+export interface AuthTokenPayload {
+  userId: string;
+  username: string;
+  type: "jwt" | "api_key" | "legacy";
+}
