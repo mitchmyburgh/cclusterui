@@ -1,0 +1,121 @@
+import { query } from "@anthropic-ai/claude-agent-sdk";
+import type { MessageContent, WSProducerEvent } from "@claude-chat/shared";
+
+export interface RunClaudeOptions {
+  content: MessageContent[];
+  sessionId: string | null;
+  anthropicApiKey: string;
+  cwd: string;
+  abortSignal?: AbortSignal;
+}
+
+export async function* runClaude(
+  options: RunClaudeOptions
+): AsyncGenerator<WSProducerEvent> {
+  const { content, sessionId, anthropicApiKey, cwd, abortSignal } = options;
+
+  const abortController = new AbortController();
+
+  // Wire up external abort signal
+  if (abortSignal) {
+    if (abortSignal.aborted) {
+      abortController.abort();
+    } else {
+      abortSignal.addEventListener("abort", () => abortController.abort(), { once: true });
+    }
+  }
+
+  // Build the text prompt from content
+  const textParts = content.filter((c) => c.type === "text" && c.text).map((c) => c.text!);
+  const prompt = textParts.join("\n") || "Please analyze the attached image(s).";
+
+  const queryOptions: Record<string, unknown> = {
+    abortController,
+    permissionMode: "bypassPermissions" as const,
+    allowDangerouslySkipPermissions: true,
+    allowedTools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep", "WebSearch", "WebFetch"],
+    cwd,
+    env: { ...process.env, ANTHROPIC_API_KEY: anthropicApiKey },
+    maxTurns: 50,
+    includePartialMessages: true,
+  };
+
+  if (sessionId) {
+    queryOptions.resume = sessionId;
+  }
+
+  const messageId = crypto.randomUUID();
+  let currentSessionId = sessionId || "";
+  let resultText = "";
+
+  yield { type: "status", status: "thinking" };
+  yield { type: "message_start", messageId };
+
+  try {
+    for await (const message of query({ prompt, options: queryOptions as any })) {
+      if (abortController.signal.aborted) break;
+
+      if (message.type === "system" && "subtype" in message && message.subtype === "init") {
+        currentSessionId = message.session_id;
+      }
+
+      if (message.type === "stream_event" && "event" in message) {
+        const event = message.event as any;
+        if (event.type === "content_block_delta" && event.delta?.type === "text_delta") {
+          yield { type: "status", status: "responding" };
+          yield { type: "message_delta", messageId, delta: event.delta.text };
+          resultText += event.delta.text;
+        }
+      }
+
+      if (message.type === "assistant" && "message" in message) {
+        const msg = message.message as any;
+        if (msg?.content) {
+          for (const block of msg.content) {
+            if (block.type === "tool_use") {
+              yield { type: "status", status: "tool_use" };
+              yield { type: "tool_use", toolName: block.name, toolInput: block.input };
+            }
+          }
+        }
+      }
+
+      if (message.type === "result") {
+        if ("result" in message && message.result) {
+          resultText = resultText || (message as any).result;
+        }
+        const isSuccess = "subtype" in message && message.subtype === "success";
+        if (isSuccess) {
+          const r = message as any;
+          yield {
+            type: "message_complete",
+            message: {
+              id: messageId,
+              chatId: "",
+              role: "assistant",
+              content: [{ type: "text", text: resultText }],
+              createdAt: new Date().toISOString(),
+              metadata: {
+                totalCostUsd: r.total_cost_usd || 0,
+                inputTokens: r.usage?.input_tokens || 0,
+                outputTokens: r.usage?.output_tokens || 0,
+                durationMs: r.duration_ms || 0,
+                model: Object.keys(r.modelUsage || {})[0] || "unknown",
+              },
+            },
+            sessionId: currentSessionId,
+          };
+        } else {
+          const errors = (message as any).errors || [];
+          yield { type: "error", error: errors.join("; ") || "Agent execution failed" };
+        }
+      }
+    }
+  } catch (err: any) {
+    if (err.name !== "AbortError") {
+      yield { type: "error", error: err.message || "Unknown error" };
+    }
+  }
+
+  yield { type: "status", status: "idle" };
+}

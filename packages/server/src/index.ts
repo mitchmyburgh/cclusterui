@@ -39,7 +39,7 @@ async function main() {
   // Graceful shutdown
   const shutdown = async () => {
     console.log("Shutting down...");
-    await context.clientManager.destroy();
+    context.connectionManager.destroy();
     server.close();
     process.exit(0);
   };

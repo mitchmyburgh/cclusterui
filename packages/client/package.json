@@ -4,9 +4,13 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "claude-chat-client": "dist/cli.js"
+  },
   "scripts": {
     "dev": "tsc --watch --preserveWatchOutput",
     "build": "tsc",
+    "start": "node dist/cli.js",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -26,6 +30,11 @@
   ],
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.2.42",
-    "@claude-chat/shared": "workspace:*"
+    "@claude-chat/shared": "workspace:*",
+    "commander": "^13.0.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.13"
   }
 }

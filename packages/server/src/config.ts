@@ -4,7 +4,6 @@ export interface ServerConfig {
   port: number;
   host: string;
   apiKeys: string[];
-  anthropicApiKey: string;
   jwtSecret: string;
   allowedUsernames: string[];
   db: {
@@ -27,7 +26,6 @@ export function loadConfig(): ServerConfig {
     port: parseInt(process.env.PORT || "3000", 10),
     host: process.env.HOST || "0.0.0.0",
     apiKeys: (process.env.API_KEYS || "").split(",").filter(Boolean),
-    anthropicApiKey: process.env.ANTHROPIC_API_KEY || "",
     jwtSecret,
     allowedUsernames: (process.env.ALLOWED_USERNAMES || "").split(",").filter(Boolean),
     db: {

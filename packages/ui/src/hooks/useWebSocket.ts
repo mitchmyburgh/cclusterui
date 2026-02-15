@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from "react";
-import type { WSClientEvent, WSServerEvent } from "@claude-chat/shared";
+import type { WSViewerEvent, WSServerToViewerEvent } from "@claude-chat/shared";
 
-export function useWebSocket(chatId: string, apiKey: string, onEvent: (event: WSServerEvent) => void) {
+export function useWebSocket(chatId: string, apiKey: string, onEvent: (event: WSServerToViewerEvent) => void) {
   const wsRef = useRef<WebSocket | null>(null);
   const [connected, setConnected] = useState(false);
   const onEventRef = useRef(onEvent);
@@ -9,7 +9,7 @@ export function useWebSocket(chatId: string, apiKey: string, onEvent: (event: WS
 
   useEffect(() => {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/api/chats/${chatId}/ws?token=${encodeURIComponent(apiKey)}`;
+    const wsUrl = `${protocol}//${window.location.host}/api/chats/${chatId}/ws?token=${encodeURIComponent(apiKey)}&role=viewer`;
 
     let reconnectAttempts = 0;
     let reconnectTimer: ReturnType<typeof setTimeout>;
@@ -26,7 +26,7 @@ export function useWebSocket(chatId: string, apiKey: string, onEvent: (event: WS
 
       ws.onmessage = (evt) => {
         try {
-          const event: WSServerEvent = JSON.parse(evt.data);
+          const event: WSServerToViewerEvent = JSON.parse(evt.data);
           onEventRef.current(event);
         } catch { /* ignore parse errors */ }
       };
@@ -51,7 +51,7 @@ export function useWebSocket(chatId: string, apiKey: string, onEvent: (event: WS
     };
   }, [chatId, apiKey]);
 
-  const send = useCallback((event: WSClientEvent) => {
+  const send = useCallback((event: WSViewerEvent) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify(event));
     }

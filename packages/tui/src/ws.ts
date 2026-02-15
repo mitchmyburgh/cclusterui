@@ -1,10 +1,10 @@
 import WebSocket from "ws";
-import type { WSClientEvent, WSServerEvent } from "@claude-chat/shared";
+import type { WSViewerEvent, WSServerToViewerEvent } from "@claude-chat/shared";
 
 export interface WsClient {
-  send: (event: WSClientEvent) => void;
+  send: (event: WSViewerEvent) => void;
   close: () => void;
-  onEvent: (handler: (event: WSServerEvent) => void) => void;
+  onEvent: (handler: (event: WSServerToViewerEvent) => void) => void;
   onClose: (handler: () => void) => void;
   onOpen: (handler: () => void) => void;
 }
@@ -12,14 +12,15 @@ export interface WsClient {
 export function connectWs(
   serverUrl: string,
   apiKey: string,
-  chatId: string
+  chatId: string,
+  role: "viewer" | "producer" = "viewer"
 ): WsClient {
   const wsUrl = serverUrl.replace(/^http/, "ws");
   const ws = new WebSocket(
-    `${wsUrl}/api/chats/${chatId}/ws?token=${encodeURIComponent(apiKey)}`
+    `${wsUrl}/api/chats/${chatId}/ws?token=${encodeURIComponent(apiKey)}&role=${role}`
   );
 
-  let eventHandler: ((event: WSServerEvent) => void) | null = null;
+  let eventHandler: ((event: WSServerToViewerEvent) => void) | null = null;
   let closeHandler: (() => void) | null = null;
   let openHandler: (() => void) | null = null;
 
@@ -30,7 +31,7 @@ export function connectWs(
   ws.on("message", (data) => {
     if (eventHandler) {
       try {
-        const event = JSON.parse(data.toString()) as WSServerEvent;
+        const event = JSON.parse(data.toString()) as WSServerToViewerEvent;
         eventHandler(event);
       } catch {
         // ignore parse errors
@@ -43,7 +44,7 @@ export function connectWs(
   });
 
   return {
-    send(event: WSClientEvent) {
+    send(event: WSViewerEvent) {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify(event));
       }

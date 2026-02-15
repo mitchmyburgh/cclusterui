@@ -6,6 +6,8 @@ interface ChatInputProps {
   onSend: (content: MessageContent[]) => void;
   disabled?: boolean;
   onCancel?: () => void;
+  producerDisconnected?: boolean;
+  chatId?: string;
 }
 
 interface PendingImage {
@@ -15,7 +17,7 @@ interface PendingImage {
   name: string;
 }
 
-export function ChatInput({ onSend, disabled, onCancel }: ChatInputProps) {
+export function ChatInput({ onSend, disabled, onCancel, producerDisconnected, chatId }: ChatInputProps) {
   const [text, setText] = useState("");
   const [images, setImages] = useState<PendingImage[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -71,12 +73,12 @@ export function ChatInput({ onSend, disabled, onCancel }: ChatInputProps) {
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (!disabled) handleSend();
+      if (!disabled && !producerDisconnected) handleSend();
     }
     if (e.key === "Escape" && onCancel) {
       onCancel();
     }
-  }, [disabled, handleSend, onCancel]);
+  }, [disabled, producerDisconnected, handleSend, onCancel]);
 
   const handleInput = useCallback(() => {
     const el = textareaRef.current;
@@ -85,8 +87,15 @@ export function ChatInput({ onSend, disabled, onCancel }: ChatInputProps) {
     el.style.height = Math.min(el.scrollHeight, 150) + "px";
   }, []);
 
+  const isSendDisabled = disabled || producerDisconnected;
+
   return (
     <div className="border-t border-gray-700 p-3">
+      {producerDisconnected && !disabled && (
+        <div className="mb-2 rounded bg-yellow-900/50 px-3 py-2 text-xs text-yellow-300">
+          No local client connected. Run <code className="rounded bg-gray-800 px-1">claude-chat-client --server &lt;url&gt; --chat {chatId || "<id>"} --anthropic-key &lt;key&gt;</code> to start.
+        </div>
+      )}
       {images.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-2">
           {images.map((img) => (
@@ -127,9 +136,9 @@ export function ChatInput({ onSend, disabled, onCancel }: ChatInputProps) {
           onInput={handleInput}
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
-          placeholder="Type a message..."
+          placeholder={producerDisconnected ? "No client connected..." : "Type a message..."}
           rows={1}
-          disabled={disabled}
+          disabled={isSendDisabled}
           className="flex-1 resize-none rounded-md bg-gray-700 px-4 py-2.5 text-sm text-white placeholder-gray-400 outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
           aria-label="Type a message"
         />
@@ -144,7 +153,7 @@ export function ChatInput({ onSend, disabled, onCancel }: ChatInputProps) {
         ) : (
           <button
             onClick={handleSend}
-            disabled={!text.trim() && images.length === 0}
+            disabled={isSendDisabled || (!text.trim() && images.length === 0)}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             aria-label="Send message"
           >

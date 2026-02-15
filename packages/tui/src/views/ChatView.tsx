@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Box, Text, useInput } from "ink";
 import Spinner from "ink-spinner";
-import type { Chat, Message, WSServerEvent } from "@claude-chat/shared";
+import type { Chat, Message, WSServerToViewerEvent } from "@claude-chat/shared";
 import type { ApiClient } from "../api.js";
 import { connectWs } from "../ws.js";
 import { MessageList } from "../components/MessageList.js";
@@ -23,6 +23,7 @@ export function ChatView({ api, serverUrl, apiKey, chat, onBack }: Props) {
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
+  const [producerConnected, setProducerConnected] = useState(false);
   const [ws, setWs] = useState<ReturnType<typeof connectWs> | null>(null);
 
   useEffect(() => {
@@ -38,12 +39,12 @@ export function ChatView({ api, serverUrl, apiKey, chat, onBack }: Props) {
   }, [chat.id]);
 
   useEffect(() => {
-    const client = connectWs(serverUrl, apiKey, chat.id);
+    const client = connectWs(serverUrl, apiKey, chat.id, "viewer");
 
     client.onOpen(() => setConnected(true));
     client.onClose(() => setConnected(false));
 
-    client.onEvent((event: WSServerEvent) => {
+    client.onEvent((event: WSServerToViewerEvent) => {
       switch (event.type) {
         case "message_start":
           setIsStreaming(true);
@@ -58,11 +59,32 @@ export function ChatView({ api, serverUrl, apiKey, chat, onBack }: Props) {
           setIsStreaming(false);
           setStatus(null);
           break;
+        case "user_message_stored":
+          // Replace optimistic message with server-persisted version
+          setMessages((prev) => {
+            let idx = -1;
+            for (let i = prev.length - 1; i >= 0; i--) {
+              if (prev[i].role === "user" && prev[i].id.startsWith("temp-")) {
+                idx = i;
+                break;
+              }
+            }
+            if (idx >= 0) {
+              const updated = [...prev];
+              updated[idx] = event.message;
+              return updated;
+            }
+            return prev;
+          });
+          break;
         case "tool_use":
           setStatus(`tool: ${event.toolName}`);
           break;
         case "status":
           setStatus(event.status === "idle" ? null : event.status);
+          break;
+        case "producer_status":
+          setProducerConnected(event.connected);
           break;
         case "error":
           setError(event.error);
@@ -124,8 +146,19 @@ export function ChatView({ api, serverUrl, apiKey, chat, onBack }: Props) {
         <Text bold color="blue">
           {chat.title}
         </Text>
-        <Text dimColor>{connected ? "● connected" : "○ disconnected"}</Text>
+        <Box gap={1}>
+          <Text color={producerConnected ? "green" : "red"}>
+            {producerConnected ? "● client" : "○ no client"}
+          </Text>
+          <Text dimColor>{connected ? "● ws" : "○ ws"}</Text>
+        </Box>
       </Box>
+
+      {!producerConnected && (
+        <Box marginBottom={1}>
+          <Text color="yellow">No local client connected. Run `claude-chat-client --chat {chat.id}` to start.</Text>
+        </Box>
+      )}
 
       {error && (
         <Box marginBottom={1}>
@@ -139,7 +172,7 @@ export function ChatView({ api, serverUrl, apiKey, chat, onBack }: Props) {
         status={status}
       />
 
-      <Input onSubmit={handleSend} disabled={isStreaming || !connected} />
+      <Input onSubmit={handleSend} disabled={isStreaming || !connected || !producerConnected} />
 
       <Box marginTop={1}>
         <Text dimColor>Esc {isStreaming ? "cancel" : "back"}</Text>

@@ -26,7 +26,6 @@
     "dist"
   ],
   "dependencies": {
-    "@claude-chat/client": "workspace:*",
     "@claude-chat/db": "workspace:*",
     "@claude-chat/shared": "workspace:*",
     "@hono/node-server": "^1.19.9",

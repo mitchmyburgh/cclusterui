@@ -1,5 +1,5 @@
 import type { ChatRepository } from "@claude-chat/db";
-import type { ClientManager } from "@claude-chat/client";
+import type { ConnectionManager } from "./connection-manager.js";
 import type { ServerConfig } from "./config.js";
 
 export type AppEnv = {
@@ -9,7 +9,7 @@ export type AppEnv = {
     username: string;
     authType: "jwt" | "api_key" | "legacy";
     repo: ChatRepository;
-    clientManager: ClientManager;
+    connectionManager: ConnectionManager;
     config: ServerConfig;
   };
 };

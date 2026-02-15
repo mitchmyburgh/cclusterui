@@ -8,4 +8,6 @@ export const ALLOWED_IMAGE_TYPES = [
   "image/webp",
 ];
 export const WS_PING_INTERVAL = 30_000;
+export const WS_HEARTBEAT_INTERVAL = 15_000;
+export const WS_HEARTBEAT_TIMEOUT = 45_000;
 export const DEFAULT_PAGE_SIZE = 50;

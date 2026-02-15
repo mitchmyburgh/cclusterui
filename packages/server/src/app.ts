@@ -8,6 +8,7 @@ import { chats } from "./routes/chats.js";
 import { keys } from "./routes/keys.js";
 import { messages } from "./routes/messages.js";
 import { createWsRoutes } from "./routes/ws.js";
+import { producerStatus } from "./routes/producer-status.js";
 import type { AppEnv } from "./types.js";
 import type { AppContext } from "./context.js";
 
@@ -30,7 +31,7 @@ export function createApp(context: AppContext, upgradeWebSocket?: any) {
   // Inject context into all /api routes
   app.use("/api/*", async (c, next) => {
     c.set("repo", context.repo);
-    c.set("clientManager", context.clientManager);
+    c.set("connectionManager", context.connectionManager);
     c.set("config", context.config);
     await next();
   });
@@ -45,6 +46,7 @@ export function createApp(context: AppContext, upgradeWebSocket?: any) {
   app.route("/api", chats);
   app.route("/api", messages);
   app.route("/api", keys);
+  app.route("/api", producerStatus);
 
   if (upgradeWebSocket) {
     app.route("/api", createWsRoutes(upgradeWebSocket));

@@ -3,7 +3,7 @@ import { useWebSocket } from "../../hooks/useWebSocket";
 import { createApiClient } from "../../lib/api";
 import { ChatInput } from "./ChatInput";
 import { MessageBubble } from "./MessageBubble";
-import type { Chat, Message, MessageContent, WSServerEvent } from "@claude-chat/shared";
+import type { Chat, Message, MessageContent, WSServerToViewerEvent } from "@claude-chat/shared";
 
 interface ChatPanelProps {
   chatId: string;
@@ -18,6 +18,7 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
   const [streamingId, setStreamingId] = useState<string | null>(null);
   const [status, setStatus] = useState<string>("idle");
   const [loading, setLoading] = useState(true);
+  const [producerConnected, setProducerConnected] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -34,7 +35,7 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, streamingText]);
 
-  const handleWSEvent = useCallback((event: WSServerEvent) => {
+  const handleWSEvent = useCallback((event: WSServerToViewerEvent) => {
     switch (event.type) {
       case "message_start":
         setStreamingId(event.messageId);
@@ -50,11 +51,32 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
         setStreamingId(null);
         setStatus("idle");
         break;
+      case "user_message_stored":
+        // Replace optimistic user message with server-persisted version
+        setMessages((prev) => {
+          let idx = -1;
+          for (let i = prev.length - 1; i >= 0; i--) {
+            if (prev[i].role === "user" && prev[i].id.startsWith("temp-")) {
+              idx = i;
+              break;
+            }
+          }
+          if (idx >= 0) {
+            const updated = [...prev];
+            updated[idx] = event.message;
+            return updated;
+          }
+          return prev;
+        });
+        break;
       case "tool_use":
         setStatus(`Using: ${event.toolName}`);
         break;
       case "status":
         setStatus(event.status);
+        break;
+      case "producer_status":
+        setProducerConnected(event.connected);
         break;
       case "error":
         setStatus("idle");
@@ -69,7 +91,7 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
   const handleSend = useCallback((content: MessageContent[]) => {
     // Optimistically add user message
     const userMsg: Message = {
-      id: crypto.randomUUID(),
+      id: `temp-${crypto.randomUUID()}`,
       chatId,
       role: "user",
       content,
@@ -94,6 +116,10 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
       <div className="flex items-center justify-between border-b border-gray-700 px-4 py-2">
         <div className="flex items-center gap-2">
           <h2 className="text-sm font-medium truncate">{chat?.title || "Chat"}</h2>
+          <span
+            className={`inline-block h-2 w-2 rounded-full ${producerConnected ? "bg-green-500" : "bg-red-500"}`}
+            title={producerConnected ? "Client connected" : "No client connected"}
+          />
           {!connected && (
             <span className="rounded bg-yellow-600 px-1.5 py-0.5 text-[10px]">Reconnecting...</span>
           )}
@@ -140,6 +166,8 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
         onSend={handleSend}
         disabled={isStreaming}
         onCancel={isStreaming ? handleCancel : undefined}
+        producerDisconnected={!producerConnected}
+        chatId={chatId}
       />
     </div>
   );

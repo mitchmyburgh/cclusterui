@@ -1,10 +1,10 @@
 import { createRepository, type ChatRepository } from "@claude-chat/db";
-import { ClientManager } from "@claude-chat/client";
+import { ConnectionManager } from "./connection-manager.js";
 import type { ServerConfig } from "./config.js";
 
 export interface AppContext {
   repo: ChatRepository;
-  clientManager: ClientManager;
+  connectionManager: ConnectionManager;
   config: ServerConfig;
 }
 
@@ -18,10 +18,7 @@ export async function createAppContext(config: ServerConfig): Promise<AppContext
     mongodbName: config.db.mongodbName,
   });
 
-  const clientManager = new ClientManager({
-    anthropicApiKey: config.anthropicApiKey,
-    cwd: process.cwd(),
-  });
+  const connectionManager = new ConnectionManager();
 
-  return { repo, clientManager, config };
+  return { repo, connectionManager, config };
 }
