@@ -9,9 +9,9 @@ import { runClaude } from "./claude-runner.js";
 
 export interface LocalClientOptions {
   serverUrl: string;
-  chatId: string;
+  chatId?: string;
   apiKey: string;
-  anthropicApiKey: string;
+  anthropicApiKey?: string;
   cwd: string;
 }
 
@@ -22,19 +22,49 @@ export class LocalClient {
   private reconnecting = false;
   private shouldRun = true;
   private options: LocalClientOptions;
+  private _chatId: string | undefined;
 
   constructor(options: LocalClientOptions) {
     this.options = options;
+    this._chatId = options.chatId;
+  }
+
+  get chatId(): string | undefined {
+    return this._chatId;
+  }
+
+  private async createChat(): Promise<string> {
+    const { serverUrl, apiKey } = this.options;
+    const res = await fetch(`${serverUrl}/api/chats`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({}),
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(`Failed to create chat: ${(body as any).error || res.statusText}`);
+    }
+
+    const json = (await res.json()) as { data: { id: string } };
+    return json.data.id;
   }
 
   async connect(): Promise<void> {
     this.shouldRun = true;
+    if (!this._chatId) {
+      this._chatId = await this.createChat();
+    }
     return this.doConnect();
   }
 
   private doConnect(): Promise<void> {
     return new Promise((resolve, reject) => {
-      const { serverUrl, chatId, apiKey, cwd } = this.options;
+      const { serverUrl, apiKey, cwd } = this.options;
+      const chatId = this._chatId!;
       const wsUrl = serverUrl.replace(/^http/, "ws");
       const host = hostname();
       const url = `${wsUrl}/api/chats/${chatId}/ws?token=${encodeURIComponent(apiKey)}&role=producer&hostname=${encodeURIComponent(host)}&cwd=${encodeURIComponent(cwd)}`;

@@ -1,6 +1,14 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Box, Text } from "ink";
+import { Marked } from "marked";
+import { markedTerminal } from "marked-terminal";
 import type { Message } from "@claude-chat/shared";
+
+const marked = new Marked(markedTerminal() as any);
+
+function renderMd(text: string): string {
+  return (marked.parse(text) as string).trimEnd();
+}
 
 interface Props {
   messages: Message[];
@@ -9,6 +17,11 @@ interface Props {
 }
 
 export function MessageList({ messages, streamingText, status }: Props) {
+  const renderedStream = useMemo(
+    () => (streamingText ? renderMd(streamingText) : ""),
+    [streamingText]
+  );
+
   return (
     <Box flexDirection="column" flexGrow={1}>
       {messages.map((msg) => (
@@ -19,7 +32,7 @@ export function MessageList({ messages, streamingText, status }: Props) {
           {msg.content.map((c, i) =>
             c.type === "text" ? (
               <Text key={i} wrap="wrap">
-                {c.text}
+                {msg.role === "assistant" ? renderMd(c.text!) : c.text}
               </Text>
             ) : (
               <Text key={i} dimColor>
@@ -48,7 +61,7 @@ export function MessageList({ messages, streamingText, status }: Props) {
           <Text bold color="green">
             Assistant:
           </Text>
-          <Text wrap="wrap">{streamingText}</Text>
+          <Text wrap="wrap">{renderedStream}</Text>
         </Box>
       )}
 

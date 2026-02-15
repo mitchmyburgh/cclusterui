@@ -4,7 +4,7 @@ import type { MessageContent, WSProducerEvent } from "@claude-chat/shared";
 export interface RunClaudeOptions {
   content: MessageContent[];
   sessionId: string | null;
-  anthropicApiKey: string;
+  anthropicApiKey?: string;
   cwd: string;
   abortSignal?: AbortSignal;
 }
@@ -35,7 +35,11 @@ export async function* runClaude(
     allowDangerouslySkipPermissions: true,
     allowedTools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep", "WebSearch", "WebFetch"],
     cwd,
-    env: { ...process.env, ANTHROPIC_API_KEY: anthropicApiKey },
+    env: {
+      ...process.env,
+      ...(anthropicApiKey ? { ANTHROPIC_API_KEY: anthropicApiKey } : {}),
+      CLAUDE_MODEL: process.env.CLAUDE_MODEL || "claude-opus-4-6",
+    },
     maxTurns: 50,
     includePartialMessages: true,
   };

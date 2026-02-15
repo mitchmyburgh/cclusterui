@@ -14,17 +14,21 @@ export function useWebSocket(chatId: string, apiKey: string, onEvent: (event: WS
     let reconnectAttempts = 0;
     let reconnectTimer: ReturnType<typeof setTimeout>;
     let ws: WebSocket;
+    let cancelled = false;
 
     function connect() {
+      if (cancelled) return;
       ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
       ws.onopen = () => {
+        if (cancelled) { ws.close(); return; }
         setConnected(true);
         reconnectAttempts = 0;
       };
 
       ws.onmessage = (evt) => {
+        if (cancelled) return;
         try {
           const event: WSServerToViewerEvent = JSON.parse(evt.data);
           onEventRef.current(event);
@@ -32,6 +36,7 @@ export function useWebSocket(chatId: string, apiKey: string, onEvent: (event: WS
       };
 
       ws.onclose = () => {
+        if (cancelled) return;
         setConnected(false);
         wsRef.current = null;
         if (reconnectAttempts < 5) {
@@ -46,6 +51,7 @@ export function useWebSocket(chatId: string, apiKey: string, onEvent: (event: WS
     connect();
 
     return () => {
+      cancelled = true;
       clearTimeout(reconnectTimer);
       ws?.close();
     };

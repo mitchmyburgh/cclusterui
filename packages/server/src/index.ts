@@ -17,11 +17,14 @@ async function main() {
 
   const context = await createAppContext(config);
 
-  // Create WebSocket support
-  const baseApp = new Hono();
-  const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app: baseApp });
+  // Create WebSocket support — the Hono app passed to createNodeWebSocket
+  // must be the same instance used by serve() so WS upgrades work correctly.
+  const app = new Hono();
+  const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
 
-  const app = createApp(context, upgradeWebSocket);
+  // Mount the full application (REST + WS) onto this app
+  const mainApp = createApp(context, upgradeWebSocket);
+  app.route("/", mainApp);
 
   const server = serve(
     {

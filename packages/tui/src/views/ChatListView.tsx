@@ -41,16 +41,6 @@ export function ChatListView({ api, onSelectChat, onQuit }: Props) {
       return;
     }
 
-    if (_input === "n") {
-      try {
-        const res = await api.createChat();
-        onSelectChat(res.data);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to create chat");
-      }
-      return;
-    }
-
     if (_input === "d" && chats.length > 0) {
       try {
         await api.deleteChat(chats[cursor]!.id);
@@ -104,7 +94,7 @@ export function ChatListView({ api, onSelectChat, onQuit }: Props) {
       )}
 
       {chats.length === 0 ? (
-        <Text dimColor>No chats yet. Press n to create one.</Text>
+        <Text dimColor>No chats yet. Start a local client to create one.</Text>
       ) : (
         chats.map((chat, i) => (
           <Box key={chat.id}>
@@ -125,7 +115,7 @@ export function ChatListView({ api, onSelectChat, onQuit }: Props) {
 
       <Box marginTop={1}>
         <Text dimColor>
-          ↑↓ navigate · Enter select · n new · d delete · r refresh · q quit
+          ↑↓ navigate · Enter select · d delete · r refresh · q quit
         </Text>
       </Box>
     </Box>

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import ReactMarkdown from "react-markdown";
 import { useWebSocket } from "../../hooks/useWebSocket";
 import { createApiClient } from "../../lib/api";
 import { ChatInput } from "./ChatInput";
@@ -66,7 +67,8 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
             updated[idx] = event.message;
             return updated;
           }
-          return prev;
+          // Message from another viewer (TUI, etc.) — append it
+          return [...prev, event.message];
         });
         break;
       case "tool_use":
@@ -150,8 +152,10 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
             ))}
             {isStreaming && streamingText && (
               <div className="flex justify-start mb-3">
-                <div className="max-w-[80%] rounded-lg bg-gray-700 px-4 py-2 text-sm text-gray-100 whitespace-pre-wrap break-words">
-                  {streamingText}
+                <div className="max-w-[80%] rounded-lg bg-gray-700 px-4 py-2 text-gray-100">
+                  <div className="prose prose-invert prose-sm max-w-none break-words">
+                    <ReactMarkdown>{streamingText}</ReactMarkdown>
+                  </div>
                   <span className="inline-block w-1.5 h-4 ml-0.5 bg-gray-400 animate-pulse" />
                 </div>
               </div>

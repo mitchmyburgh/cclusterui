@@ -21,15 +21,6 @@ export function AppLayout() {
       .catch(() => setLoading(false));
   });
 
-  const handleCreateChat = useCallback(async () => {
-    const res = await api.post<{ data: Chat }>("/api/chats", {});
-    setChats((prev) => [res.data, ...prev]);
-    setOpenPanels((prev) => {
-      if (prev.length >= 3) return [res.data.id, ...prev.slice(0, 2)];
-      return [...prev, res.data.id];
-    });
-  }, [api]);
-
   const handleSelectChat = useCallback((id: string) => {
     setOpenPanels((prev) => {
       if (prev.includes(id)) return prev;
@@ -55,12 +46,6 @@ export function AppLayout() {
         <div className="flex items-center justify-between border-b border-gray-700 px-4 py-3">
           <h1 className="text-lg font-semibold">Claude Chat</h1>
           <div className="flex gap-2">
-            <button
-              onClick={handleCreateChat}
-              className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium hover:bg-blue-700 transition-colors"
-            >
-              + New
-            </button>
             <button
               onClick={() => setShowSettings(true)}
               className="rounded-md bg-gray-700 px-3 py-1.5 text-sm text-gray-300 hover:bg-gray-600 transition-colors"
@@ -99,7 +84,7 @@ export function AppLayout() {
           </div>
         ) : openPanels.length === 0 ? (
           <div className="flex flex-1 items-center justify-center text-gray-500">
-            <p>Select or create a chat to get started</p>
+            <p>Start a local client to create a chat</p>
           </div>
         ) : (
           openPanels.map((chatId) => (

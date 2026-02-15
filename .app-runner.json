@@ -1,13 +1,14 @@
 {
   "cclusterui": {
-    "description": "Claude Chat – shared types, db, client, server, and UI",
+    "description": "claude chat – shared types, db, client, server, and ui",
     "processes": [
-      { "title": "Shared",  "cwd": "./packages/shared",  "cmd": "pnpm dev" },
-      { "title": "DB",      "cwd": "./packages/db",      "cmd": "pnpm dev" },
-      { "title": "Client",  "cwd": "./packages/client",  "cmd": "pnpm dev" },
-      { "title": "Server",  "cwd": "./packages/server",  "cmd": "pnpm dev" },
-      { "title": "UI",      "cwd": "./packages/ui",      "cmd": "pnpm dev" },
-      { "title": "TUI",     "cwd": "./packages/tui",     "cmd": "pnpm dev" }
+      { "title": "shared", "cwd": "./packages/shared", "cmd": "pnpm dev" },
+      { "title": "db", "cwd": "./packages/db", "cmd": "pnpm dev" },
+      { "title": "client", "cwd": "./packages/client", "cmd": "pnpm dev" },
+      { "title": "client-run", "cwd": "./packages/client", "cmd": "node dist/cli.js --server http://localhost:3000 --username admin --password 1234 --cwd ../.." },
+      { "title": "server", "cwd": "./packages/server", "cmd": "pnpm dev" },
+      { "title": "ui", "cwd": "./packages/ui", "cmd": "pnpm dev" },
+      { "title": "tui", "cwd": "./packages/tui", "cmd": "pnpm dev" }
     ]
   }
 }

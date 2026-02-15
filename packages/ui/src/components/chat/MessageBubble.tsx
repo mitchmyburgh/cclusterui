@@ -1,3 +1,4 @@
+import ReactMarkdown from "react-markdown";
 import type { Message } from "@claude-chat/shared";
 
 interface MessageBubbleProps {
@@ -18,9 +19,16 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       >
         {message.content.map((block, i) => {
           if (block.type === "text" && block.text) {
+            if (isUser) {
+              return (
+                <div key={i} className="whitespace-pre-wrap break-words text-sm">
+                  {block.text}
+                </div>
+              );
+            }
             return (
-              <div key={i} className="whitespace-pre-wrap break-words text-sm">
-                {block.text}
+              <div key={i} className="prose prose-invert prose-sm max-w-none break-words">
+                <ReactMarkdown>{block.text}</ReactMarkdown>
               </div>
             );
           }

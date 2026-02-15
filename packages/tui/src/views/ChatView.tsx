@@ -74,7 +74,8 @@ export function ChatView({ api, serverUrl, apiKey, chat, onBack }: Props) {
               updated[idx] = event.message;
               return updated;
             }
-            return prev;
+            // Message from another viewer — append it
+            return [...prev, event.message];
           });
           break;
         case "tool_use":

@@ -9,11 +9,11 @@ program
   .name("claude-chat-client")
   .description("Local client that runs Claude Agent SDK against your codebase")
   .requiredOption("--server <url>", "Server URL (e.g., http://localhost:3000)")
-  .requiredOption("--chat <id>", "Chat ID to connect to")
+  .option("--chat <id>", "Chat ID to connect to (omit to create a new chat)")
   .option("--api-key <key>", "API key or JWT token for authentication")
   .option("--username <username>", "Login with username (requires --password)")
   .option("--password <password>", "Login with password (requires --username)")
-  .requiredOption("--anthropic-key <key>", "Anthropic API key for Claude SDK")
+  .option("--anthropic-key <key>", "Anthropic API key (defaults to ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN from env)")
   .option("--cwd <path>", "Working directory for Claude operations", ".")
   .parse(process.argv);
 
@@ -37,8 +37,8 @@ async function main() {
       process.exit(1);
     }
 
-    const data = (await res.json()) as { token: string };
-    apiKey = data.token;
+    const data = (await res.json()) as { data: { token: string } };
+    apiKey = data.data.token;
     console.log("Login successful");
   }
 
@@ -48,7 +48,11 @@ async function main() {
   }
 
   const cwd = resolve(opts.cwd);
-  console.log(`Starting local client for chat ${opts.chat}`);
+  if (opts.chat) {
+    console.log(`Starting local client for chat ${opts.chat}`);
+  } else {
+    console.log("Starting local client (will create a new chat)");
+  }
   console.log(`Working directory: ${cwd}`);
   console.log(`Server: ${opts.server}`);
 
@@ -72,6 +76,7 @@ async function main() {
 
   try {
     await client.connect();
+    console.log(`Chat ID: ${client.chatId}`);
   } catch (err: any) {
     console.error("Failed to connect:", err.message);
     process.exit(1);

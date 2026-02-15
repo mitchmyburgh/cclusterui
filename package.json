@@ -1,5 +1,5 @@
 {
-  "name": "claude-chat",
+  "name": "ccluster",
   "private": true,
   "type": "module",
   "scripts": {
