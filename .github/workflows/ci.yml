@@ -24,7 +24,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Build library types (required before typecheck)
-        run: pnpm --filter @claude-chat/shared --filter @claude-chat/db run build
+        run: pnpm --filter @ccluster/shared --filter @ccluster/db run build
 
       - run: pnpm typecheck
 

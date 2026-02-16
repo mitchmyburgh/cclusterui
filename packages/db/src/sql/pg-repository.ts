@@ -13,8 +13,8 @@ import type {
   PaginationParams,
   User,
   ApiKey,
-} from "@claude-chat/shared";
-import { DEFAULT_CHAT_TITLE, DEFAULT_PAGE_SIZE } from "@claude-chat/shared";
+} from "@ccluster/shared";
+import { DEFAULT_CHAT_TITLE, DEFAULT_PAGE_SIZE } from "@ccluster/shared";
 import * as schema from "./schema-pg.js";
 
 const { Pool } = pg;

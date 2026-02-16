@@ -1,4 +1,4 @@
-# @claude-chat/db
+# @ccluster/db
 
 Database abstraction layer for the ccluster chat application. This package provides a unified `ChatRepository` interface with swappable backend implementations, allowing the application to run against SQLite, PostgreSQL, MySQL, or MongoDB without changing any business logic.
 
@@ -164,8 +164,8 @@ The configuration values are typically sourced from environment variables by the
 ## Usage example
 
 ```typescript
-import { createRepository } from "@claude-chat/db";
-import type { ChatRepository, DbConfig } from "@claude-chat/db";
+import { createRepository } from "@ccluster/db";
+import type { ChatRepository, DbConfig } from "@ccluster/db";
 
 // Configure for SQLite (simplest setup)
 const config: DbConfig = {

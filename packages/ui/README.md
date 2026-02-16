@@ -1,4 +1,4 @@
-# @claude-chat/ui
+# @ccluster/ui
 
 The web-based frontend for Claude Chat -- a multi-panel, real-time chat interface for interacting with Claude through a relay server. Built with React 19, Vite 7, and Tailwind CSS 4, it supports Progressive Web App (PWA) installation, live-streaming responses, image uploads, and human-in-the-loop (HITL) tool approval.
 
@@ -22,7 +22,7 @@ The web-based frontend for Claude Chat -- a multi-panel, real-time chat interfac
 
 ## Overview
 
-`@claude-chat/ui` is one package in the `cclusterui` monorepo. It serves as the viewer layer in a three-tier architecture:
+`@ccluster/ui` is one package in the `cclusterui` monorepo. It serves as the viewer layer in a three-tier architecture:
 
 ```
 Producer (local client) <--ws--> Server (relay) <--ws--> Viewer (this package)
@@ -30,7 +30,7 @@ Producer (local client) <--ws--> Server (relay) <--ws--> Viewer (this package)
 
 The UI connects to the server over WebSockets as a **viewer**. A separate **producer** (the local CLI client) connects to the same server and runs Claude. Messages flow through the server in real time: user input is sent from the viewer to the server, relayed to the producer, and Claude's streamed response is relayed back to the viewer token-by-token.
 
-Shared types and constants are imported from the `@claude-chat/shared` workspace package, ensuring type-safe communication across the stack.
+Shared types and constants are imported from the `@ccluster/shared` workspace package, ensuring type-safe communication across the stack.
 
 ## Features
 
@@ -159,7 +159,7 @@ When a producer connects with HITL enabled, the `producer_status` event includes
 
 - Node.js 18+
 - The monorepo dependencies installed at the root (`npm install` or equivalent)
-- The `@claude-chat/shared` package built (`tsc -b` in the shared package)
+- The `@ccluster/shared` package built (`tsc -b` in the shared package)
 
 ### Dev Server
 

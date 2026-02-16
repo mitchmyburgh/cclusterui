@@ -93,12 +93,12 @@ node packages/client/dist/cli.js \
 
 | Package | Path | Description |
 |---------|------|-------------|
-| [`@claude-chat/shared`](packages/shared) | `packages/shared` | Shared TypeScript types, constants, WebSocket event definitions |
-| [`@claude-chat/db`](packages/db) | `packages/db` | Multi-database abstraction layer with Drizzle ORM (SQLite, PostgreSQL, MySQL, MongoDB) |
-| [`@claude-chat/client`](packages/client) | `packages/client` | Local client -- runs Claude Agent SDK on your machine, connects to server via WebSocket |
-| [`@claude-chat/server`](packages/server) | `packages/server` | Hono-based REST + WebSocket server -- auth, chat CRUD, message relay |
-| [`@claude-chat/ui`](packages/ui) | `packages/ui` | React 19 web UI with Vite, Tailwind CSS v4, PWA support |
-| [`@claude-chat/tui`](packages/tui) | `packages/tui` | Terminal UI built with Ink (React for CLI) |
+| [`@ccluster/shared`](packages/shared) | `packages/shared` | Shared TypeScript types, constants, WebSocket event definitions |
+| [`@ccluster/db`](packages/db) | `packages/db` | Multi-database abstraction layer with Drizzle ORM (SQLite, PostgreSQL, MySQL, MongoDB) |
+| [`@ccluster/client`](packages/client) | `packages/client` | Local client -- runs Claude Agent SDK on your machine, connects to server via WebSocket |
+| [`@ccluster/server`](packages/server) | `packages/server` | Hono-based REST + WebSocket server -- auth, chat CRUD, message relay |
+| [`@ccluster/ui`](packages/ui) | `packages/ui` | React 19 web UI with Vite, Tailwind CSS v4, PWA support |
+| [`@ccluster/tui`](packages/tui) | `packages/tui` | Terminal UI built with Ink (React for CLI) |
 
 ## Environment Variables
 

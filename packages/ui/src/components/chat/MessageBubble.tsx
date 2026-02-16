@@ -1,5 +1,5 @@
 import ReactMarkdown from "react-markdown";
-import type { Message } from "@claude-chat/shared";
+import type { Message } from "@ccluster/shared";
 
 interface MessageBubbleProps {
   message: Message;

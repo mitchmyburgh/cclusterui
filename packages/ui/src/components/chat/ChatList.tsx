@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Chat } from "@claude-chat/shared";
+import type { Chat } from "@ccluster/shared";
 
 interface ChatListProps {
   chats: Chat[];

@@ -1,5 +1,5 @@
 import WebSocket from "ws";
-import type { WSViewerEvent, WSServerToViewerEvent } from "@claude-chat/shared";
+import type { WSViewerEvent, WSServerToViewerEvent } from "@ccluster/shared";
 
 export interface WsClient {
   send: (event: WSViewerEvent) => void;

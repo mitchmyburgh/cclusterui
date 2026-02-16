@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { Box } from "ink";
-import type { Chat } from "@claude-chat/shared";
+import type { Chat } from "@ccluster/shared";
 import { createApiClient } from "./api.js";
 import { ChatListView } from "./views/ChatListView.js";
 import { ChatView } from "./views/ChatView.js";

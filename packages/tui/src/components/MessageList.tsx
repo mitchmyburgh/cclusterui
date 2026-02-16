@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { Box, Text } from "ink";
 import { Marked } from "marked";
 import { markedTerminal } from "marked-terminal";
-import type { Message } from "@claude-chat/shared";
+import type { Message } from "@ccluster/shared";
 
 const marked = new Marked(markedTerminal() as any);
 

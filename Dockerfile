@@ -20,10 +20,10 @@ COPY packages/shared packages/shared
 COPY packages/db packages/db
 COPY packages/server packages/server
 COPY packages/ui packages/ui
-RUN pnpm --filter @claude-chat/shared run build && \
-    pnpm --filter @claude-chat/db run build && \
-    pnpm --filter @claude-chat/server run build && \
-    pnpm --filter @claude-chat/ui run build
+RUN pnpm --filter @ccluster/shared run build && \
+    pnpm --filter @ccluster/db run build && \
+    pnpm --filter @ccluster/server run build && \
+    pnpm --filter @ccluster/ui run build
 
 # ── Production image ──
 FROM base AS runtime

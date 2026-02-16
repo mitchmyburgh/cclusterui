@@ -5,7 +5,7 @@ import { createApiClient } from "../../lib/api";
 import { ChatInput } from "./ChatInput";
 import { MessageBubble } from "./MessageBubble";
 import { ToolApprovalDialog } from "./ToolApprovalDialog";
-import type { Chat, Message, MessageContent, WSServerToViewerEvent, ToolApprovalRequest } from "@claude-chat/shared";
+import type { Chat, Message, MessageContent, WSServerToViewerEvent, ToolApprovalRequest } from "@ccluster/shared";
 
 interface ChatPanelProps {
   chatId: string;
