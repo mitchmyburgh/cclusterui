@@ -122,7 +122,9 @@ The client reads `ANTHROPIC_API_KEY` (or `CLAUDE_CODE_OAUTH_TOKEN`) from the env
 
 ## Docker
 
-The included multi-stage Dockerfile builds the server + web UI into a single production image:
+The included multi-stage Dockerfile builds the server + web UI into a single production image (~200 MB). Only the `shared`, `db`, `server`, and `ui` packages are included; the `client` and `tui` run on your local machine.
+
+### Build & run locally
 
 ```bash
 # Build
@@ -143,7 +145,42 @@ docker run -p 3000:3000 \
   ccluster
 ```
 
-The Docker image exposes port **3000** and serves both the API and the built web UI static files.
+The image exposes port **3000** and serves both the API and the built web UI static files.
+
+### Dockerfile stages
+
+| Stage | Purpose |
+|-------|---------|
+| `base` | `node:20-slim` with pnpm 9 enabled via corepack |
+| `deps` | Copies all `package.json` files and runs `pnpm install --frozen-lockfile` |
+| `build` | Copies source for shared, db, server, and ui; builds each in dependency order |
+| `runtime` | Copies only built `dist/` directories and `node_modules` — no source code |
+
+### Deploy on Railway
+
+Railway auto-detects the Dockerfile. Create a new project and set these environment variables:
+
+| Variable | Value |
+|----------|-------|
+| `JWT_SECRET` | A random secret string |
+| `API_KEYS` | Comma-separated API keys for authentication |
+| `PORT` | `3000` (Railway sets this automatically via `$PORT`) |
+| `DB_DRIVER` | `postgres` (recommended for Railway) |
+| `POSTGRES_URL` | `${{Postgres.DATABASE_URL}}` (add a Postgres plugin first) |
+
+Steps:
+
+1. Create a new project on [Railway](https://railway.app) and connect your GitHub repo.
+2. Add a **PostgreSQL** plugin to the project.
+3. Set the environment variables above in the service settings. Reference the Postgres plugin's `DATABASE_URL` for `POSTGRES_URL`.
+4. Railway will build from the Dockerfile and deploy automatically on push to `main`.
+5. Once deployed, point your local client at the Railway URL:
+   ```bash
+   node packages/client/dist/cli.js \
+     --server https://your-app.up.railway.app \
+     --api-key <your-api-key> \
+     --cwd /path/to/your/project
+   ```
 
 > **Note:** The Docker image contains only the server and web UI. The local client must run on your machine (outside Docker) so it has access to your filesystem for tool execution.
 

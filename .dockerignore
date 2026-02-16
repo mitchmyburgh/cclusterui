@@ -4,5 +4,3 @@ dist
 .git
 .env*
 data/
-packages/tui
-packages/client

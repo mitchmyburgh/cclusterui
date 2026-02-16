@@ -9,16 +9,21 @@ COPY packages/shared/package.json packages/shared/
 COPY packages/db/package.json packages/db/
 COPY packages/server/package.json packages/server/
 COPY packages/ui/package.json packages/ui/
+COPY packages/client/package.json packages/client/
+COPY packages/tui/package.json packages/tui/
 RUN pnpm install --frozen-lockfile
 
-# ── Build everything ──
+# ── Build server + UI (shared & db are build deps) ──
 FROM deps AS build
 COPY tsconfig.base.json ./
 COPY packages/shared packages/shared
 COPY packages/db packages/db
 COPY packages/server packages/server
 COPY packages/ui packages/ui
-RUN pnpm build
+RUN pnpm --filter @claude-chat/shared run build && \
+    pnpm --filter @claude-chat/db run build && \
+    pnpm --filter @claude-chat/server run build && \
+    pnpm --filter @claude-chat/ui run build
 
 # ── Production image ──
 FROM base AS runtime
