@@ -16,6 +16,7 @@ export interface LocalClientOptions {
   anthropicApiKey?: string;
   cwd: string;
   humanInTheLoop?: boolean;
+  chatName?: string;
 }
 
 export class LocalClient {
@@ -48,7 +49,7 @@ export class LocalClient {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({}),
+      body: JSON.stringify(this.options.chatName ? { title: this.options.chatName } : {}),
     });
 
     if (!res.ok) {

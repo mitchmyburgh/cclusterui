@@ -16,6 +16,7 @@ program
   .option("--anthropic-key <key>", "Anthropic API key (defaults to ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN from env)")
   .option("--cwd <path>", "Working directory for Claude operations", ".")
   .option("--hitl", "Enable human-in-the-loop approval for write/exec tools")
+  .option("--name <name>", "Set the chat title (only used when creating a new chat)")
   .parse(process.argv);
 
 const opts = program.opts();
@@ -64,6 +65,7 @@ async function main() {
     anthropicApiKey: opts.anthropicKey,
     cwd,
     humanInTheLoop: !!opts.hitl,
+    chatName: opts.name,
   });
 
   // Graceful shutdown

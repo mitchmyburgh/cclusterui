@@ -76,6 +76,12 @@ node packages/client/dist/cli.js \
   --api-key <key> \
   --chat <chat-id>
 
+# Create a named chat
+node packages/client/dist/cli.js \
+  --server http://localhost:3000 \
+  --api-key <key> \
+  --name "Refactor auth module"
+
 # Enable human-in-the-loop tool approval
 node packages/client/dist/cli.js \
   --server http://localhost:3000 \

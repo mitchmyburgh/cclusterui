@@ -55,6 +55,7 @@ claude-chat-client --server <url> [options]
 | `--anthropic-key <key>` | `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN` from env | Anthropic API key passed to the Agent SDK. |
 | `--cwd <path>` | `.` (current directory) | Working directory for all Claude file and shell operations. |
 | `--hitl` | disabled | Enable human-in-the-loop approval mode (see below). |
+| `--name <name>` | *(none)* | Set the chat title when creating a new chat. Ignored when `--chat` is provided. |
 
 ### Examples
 
@@ -65,6 +66,15 @@ claude-chat-client \
   --server http://localhost:3000 \
   --api-key my-jwt-token \
   --cwd /home/user/project
+```
+
+Create a named chat:
+
+```bash
+claude-chat-client \
+  --server http://localhost:3000 \
+  --api-key my-jwt-token \
+  --name "Refactor auth module"
 ```
 
 Attach to an existing chat with username/password auth and HITL enabled:
