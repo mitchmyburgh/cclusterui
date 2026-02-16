@@ -1,4 +1,4 @@
-# @ccluster/shared
+# @mitchmyburgh/shared
 
 Shared type definitions and constants for the ccluster monorepo. This package is the single source of truth for the data contracts between the **server**, **client** (producer), **web UI**, and **TUI** packages. It contains no runtime logic -- only TypeScript interfaces, type aliases, and constant values.
 
@@ -6,7 +6,7 @@ Shared type definitions and constants for the ccluster monorepo. This package is
 
 | Field       | Value                  |
 |-------------|------------------------|
-| Name        | `@ccluster/shared`  |
+| Name        | `@mitchmyburgh/shared`  |
 | Version     | `0.0.1`                |
 | Module      | ESM (`"type": "module"`) |
 | Entry point | `dist/index.js`        |
@@ -307,7 +307,7 @@ import type {
   WSServerToProducerEvent,
   ApiResponse,
   ApiListResponse,
-} from "@ccluster/shared";
+} from "@mitchmyburgh/shared";
 
 // Fetch a paginated list of chats
 async function fetchChats(token: string): Promise<ApiListResponse<Chat>> {
@@ -327,7 +327,7 @@ import {
   MAX_IMAGE_SIZE,
   DEFAULT_CHAT_TITLE,
   WS_HEARTBEAT_INTERVAL,
-} from "@ccluster/shared";
+} from "@mitchmyburgh/shared";
 
 function validateMessage(text: string): boolean {
   return text.length <= MAX_MESSAGE_LENGTH;
@@ -346,7 +346,7 @@ function validateImage(file: File): boolean {
 import type {
   WSServerToViewerEvent,
   WSViewerEvent,
-} from "@ccluster/shared";
+} from "@mitchmyburgh/shared";
 
 function handleServerEvent(event: WSServerToViewerEvent) {
   switch (event.type) {

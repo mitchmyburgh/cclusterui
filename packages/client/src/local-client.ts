@@ -5,8 +5,8 @@ import type {
   WSProducerEvent,
   ToolApprovalRequest,
   ToolApprovalResponse,
-} from "@ccluster/shared";
-import { WS_HEARTBEAT_INTERVAL } from "@ccluster/shared";
+} from "@mitchmyburgh/shared";
+import { WS_HEARTBEAT_INTERVAL } from "@mitchmyburgh/shared";
 import { runClaude } from "./claude-runner.js";
 
 export interface LocalClientOptions {

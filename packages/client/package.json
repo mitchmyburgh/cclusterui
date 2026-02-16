@@ -1,5 +1,5 @@
 {
-  "name": "@ccluster/client",
+  "name": "@mitchmyburgh/client",
   "version": "0.0.1",
   "type": "module",
   "main": "dist/index.js",
@@ -30,7 +30,7 @@
   ],
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.2.42",
-    "@ccluster/shared": "workspace:*",
+    "@mitchmyburgh/shared": "workspace:*",
     "commander": "^13.0.0",
     "ws": "^8.18.0"
   },

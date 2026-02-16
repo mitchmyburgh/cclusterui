@@ -8,7 +8,7 @@ import type {
   PaginationParams,
   User,
   ApiKey,
-} from "@ccluster/shared";
+} from "@mitchmyburgh/shared";
 
 export interface ChatRepository {
   // Chat operations (userId scoped)

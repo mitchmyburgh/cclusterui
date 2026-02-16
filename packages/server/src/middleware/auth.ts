@@ -1,7 +1,7 @@
 import { createMiddleware } from "hono/factory";
 import { jwtVerify } from "jose";
 import { createHash } from "crypto";
-import type { ChatRepository } from "@ccluster/db";
+import type { ChatRepository } from "@mitchmyburgh/db";
 import type { AppEnv } from "../types.js";
 import type { ServerConfig } from "../config.js";
 

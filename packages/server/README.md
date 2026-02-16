@@ -1,4 +1,4 @@
-# @ccluster/server
+# @mitchmyburgh/server
 
 Hono-based HTTP and WebSocket server that powers the ccluster platform. It exposes a REST API for authentication, chat management, message retrieval, and API key administration, alongside a WebSocket layer that bridges **viewer** clients (web UI) and **producer** clients (local Claude agents) in real time.
 
@@ -795,5 +795,5 @@ src/
 | `jose` | JWT signing and verification (HS256) |
 | `bcryptjs` | Password hashing for user registration/login |
 | `dotenv` | Environment variable loading |
-| `@ccluster/db` | Database repository abstraction (workspace dependency) |
-| `@ccluster/shared` | Shared types and constants (workspace dependency) |
+| `@mitchmyburgh/db` | Database repository abstraction (workspace dependency) |
+| `@mitchmyburgh/shared` | Shared types and constants (workspace dependency) |

@@ -13,8 +13,8 @@ import type {
   PaginationParams,
   User,
   ApiKey,
-} from "@ccluster/shared";
-import { DEFAULT_CHAT_TITLE, DEFAULT_PAGE_SIZE } from "@ccluster/shared";
+} from "@mitchmyburgh/shared";
+import { DEFAULT_CHAT_TITLE, DEFAULT_PAGE_SIZE } from "@mitchmyburgh/shared";
 import * as schema from "./schema-mysql.js";
 
 export class MysqlRepository implements ChatRepository {

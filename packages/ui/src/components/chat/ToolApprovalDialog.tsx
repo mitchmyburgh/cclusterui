@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { ToolApprovalRequest } from "@ccluster/shared";
+import type { ToolApprovalRequest } from "@mitchmyburgh/shared";
 
 interface ToolApprovalDialogProps {
   request: ToolApprovalRequest;

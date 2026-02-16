@@ -1,4 +1,4 @@
-import type { ChatRepository } from "@ccluster/db";
+import type { ChatRepository } from "@mitchmyburgh/db";
 import type { ConnectionManager } from "./connection-manager.js";
 import type { ServerConfig } from "./config.js";
 

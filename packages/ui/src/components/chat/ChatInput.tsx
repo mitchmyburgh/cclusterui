@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, type KeyboardEvent, type ClipboardEvent, type ChangeEvent } from "react";
-import type { MessageContent } from "@ccluster/shared";
-import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_SIZE } from "@ccluster/shared";
+import type { MessageContent } from "@mitchmyburgh/shared";
+import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_SIZE } from "@mitchmyburgh/shared";
 
 interface ChatInputProps {
   onSend: (content: MessageContent[]) => void;

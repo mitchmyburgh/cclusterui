@@ -1,10 +1,10 @@
-# @ccluster/tui
+# @mitchmyburgh/tui
 
 Terminal UI for Claude Chat -- a full-featured, keyboard-driven chat client rendered directly in your terminal. Built with [Ink 5](https://github.com/vadimdemedes/ink) (React for CLIs) and connected to a `ccluster` server over REST + WebSocket.
 
 ## Overview
 
-`@ccluster/tui` provides the `claude-chat` CLI binary. It lets you browse, select, and interact with chat sessions hosted on a ccluster relay server. Messages from the assistant are streamed in real time via WebSocket and rendered as formatted Markdown with syntax highlighting, all without leaving the terminal.
+`@mitchmyburgh/tui` provides the `claude-chat` CLI binary. It lets you browse, select, and interact with chat sessions hosted on a ccluster relay server. Messages from the assistant are streamed in real time via WebSocket and rendered as formatted Markdown with syntax highlighting, all without leaving the terminal.
 
 The TUI operates as a **viewer** client. It connects to a chat's WebSocket channel with the `viewer` role, receives streamed assistant responses, and sends user messages. The actual LLM inference is handled by a **producer** (local client) that must also be connected to the same chat session.
 
@@ -136,7 +136,7 @@ packages/tui/
 
 **`api.ts`** -- A lightweight REST client factory. `createApiClient(serverUrl, apiKey)` returns an object with methods for `listChats`, `createChat`, `deleteChat`, `getChat`, and `getMessages`. All requests attach a Bearer token and handle HTTP errors uniformly.
 
-**`ws.ts`** -- WebSocket client factory. `connectWs(serverUrl, apiKey, chatId, role)` opens a WebSocket connection to `/api/chats/:chatId/ws` with token-based authentication. Returns an object with `send`, `close`, `onEvent`, `onClose`, and `onOpen` methods. Uses the typed `WSViewerEvent` and `WSServerToViewerEvent` from `@ccluster/shared`.
+**`ws.ts`** -- WebSocket client factory. `connectWs(serverUrl, apiKey, chatId, role)` opens a WebSocket connection to `/api/chats/:chatId/ws` with token-based authentication. Returns an object with `send`, `close`, `onEvent`, `onClose`, and `onOpen` methods. Uses the typed `WSViewerEvent` and `WSServerToViewerEvent` from `@mitchmyburgh/shared`.
 
 **`components/Input.tsx`** -- A controlled text input component. Shows a blue `>` prompt when active, or a "Waiting for response..." message when disabled. Submits on Enter and clears the input.
 
@@ -158,7 +158,7 @@ packages/tui/
 | `marked-terminal` | Terminal renderer for marked |
 | `ws` | WebSocket client for Node.js |
 | `react` | Component model and hooks |
-| `@ccluster/shared` | Shared types (Chat, Message, WS events, API response shapes) |
+| `@mitchmyburgh/shared` | Shared types (Chat, Message, WS events, API response shapes) |
 
 ## Development
 

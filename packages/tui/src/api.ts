@@ -3,7 +3,7 @@ import type {
   CreateChatInput,
   ApiResponse,
   ApiListResponse,
-} from "@ccluster/shared";
+} from "@mitchmyburgh/shared";
 
 export function createApiClient(serverUrl: string, apiKey: string) {
   async function request<T>(
@@ -47,7 +47,7 @@ export function createApiClient(serverUrl: string, apiKey: string) {
     getChat: (id: string) =>
       request<ApiResponse<Chat>>(`/api/chats/${id}`),
     getMessages: (chatId: string) =>
-      request<ApiListResponse<import("@ccluster/shared").Message>>(
+      request<ApiListResponse<import("@mitchmyburgh/shared").Message>>(
         `/api/chats/${chatId}/messages`
       ),
   };

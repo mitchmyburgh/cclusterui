@@ -2,8 +2,8 @@ import type {
   WSServerToViewerEvent,
   WSServerToProducerEvent,
   WSProducerEvent,
-} from "@ccluster/shared";
-import { WS_HEARTBEAT_TIMEOUT } from "@ccluster/shared";
+} from "@mitchmyburgh/shared";
+import { WS_HEARTBEAT_TIMEOUT } from "@mitchmyburgh/shared";
 
 interface ProducerConnection {
   ws: any; // Hono WSContext

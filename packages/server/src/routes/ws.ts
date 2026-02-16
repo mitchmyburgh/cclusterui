@@ -4,7 +4,7 @@ import type {
   WSViewerEvent,
   WSServerToViewerEvent,
   WSProducerEvent,
-} from "@ccluster/shared";
+} from "@mitchmyburgh/shared";
 
 export function createWsRoutes(upgradeWebSocket: any) {
   const ws = new Hono<AppEnv>();

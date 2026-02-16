@@ -4,7 +4,7 @@ import { createApiClient } from "../../lib/api";
 import { ChatList } from "../chat/ChatList";
 import { ChatPanel } from "../chat/ChatPanel";
 import { SettingsPanel } from "../settings/SettingsPanel";
-import type { Chat } from "@ccluster/shared";
+import type { Chat } from "@mitchmyburgh/shared";
 
 export function AppLayout() {
   const { apiKey, user, logout } = useAuth();

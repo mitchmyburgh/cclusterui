@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { createApiClient } from "../../lib/api";
-import type { ApiKey } from "@ccluster/shared";
+import type { ApiKey } from "@mitchmyburgh/shared";
 
 export function ApiKeyManager() {
   const { apiKey } = useAuth();

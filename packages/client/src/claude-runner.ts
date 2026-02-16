@@ -4,7 +4,7 @@ import type {
   WSProducerEvent,
   ToolApprovalRequest,
   ToolApprovalResponse,
-} from "@ccluster/shared";
+} from "@mitchmyburgh/shared";
 
 export type ToolApprovalCallback = (
   request: ToolApprovalRequest

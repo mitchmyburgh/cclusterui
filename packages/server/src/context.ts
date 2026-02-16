@@ -1,4 +1,4 @@
-import { createRepository, type ChatRepository } from "@ccluster/db";
+import { createRepository, type ChatRepository } from "@mitchmyburgh/db";
 import { ConnectionManager } from "./connection-manager.js";
 import type { ServerConfig } from "./config.js";
 

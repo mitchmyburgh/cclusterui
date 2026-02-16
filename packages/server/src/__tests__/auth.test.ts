@@ -1,7 +1,7 @@
 import { createApp } from "../app.js";
 import type { AppContext } from "../context.js";
-import type { ChatRepository } from "@ccluster/db";
-import type { ClientManager } from "@ccluster/client";
+import type { ChatRepository } from "@mitchmyburgh/db";
+import type { ClientManager } from "@mitchmyburgh/client";
 
 describe("Auth middleware", () => {
   let app: ReturnType<typeof createApp>;

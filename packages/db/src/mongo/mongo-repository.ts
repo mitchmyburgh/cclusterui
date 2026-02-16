@@ -11,8 +11,8 @@ import type {
   PaginationParams,
   User,
   ApiKey,
-} from "@ccluster/shared";
-import { DEFAULT_CHAT_TITLE, DEFAULT_PAGE_SIZE } from "@ccluster/shared";
+} from "@mitchmyburgh/shared";
+import { DEFAULT_CHAT_TITLE, DEFAULT_PAGE_SIZE } from "@mitchmyburgh/shared";
 
 interface ChatDoc {
   _id: string;

@@ -1,5 +1,5 @@
 {
-  "name": "@ccluster/shared",
+  "name": "@mitchmyburgh/shared",
   "version": "0.0.1",
   "type": "module",
   "main": "dist/index.js",

@@ -1,10 +1,10 @@
-# @ccluster/client
+# @mitchmyburgh/client
 
 Local client that runs the [Claude Agent SDK](https://www.npmjs.com/package/@anthropic-ai/claude-agent-sdk) against your codebase and streams results to a ccluster server over WebSocket.
 
 ## Overview
 
-`@ccluster/client` is the **producer** half of the ccluster architecture. It connects to a ccluster server instance, receives user prompts relayed from the web UI (the "viewer"), executes Claude locally with full tool access (file read/write, shell, search, web), and streams every event -- thinking status, text deltas, tool invocations, and final results -- back through the server to the viewer.
+`@mitchmyburgh/client` is the **producer** half of the ccluster architecture. It connects to a ccluster server instance, receives user prompts relayed from the web UI (the "viewer"), executes Claude locally with full tool access (file read/write, shell, search, web), and streams every event -- thinking status, text deltas, tool invocations, and final results -- back through the server to the viewer.
 
 Because the Agent SDK runs on your machine, Claude operates directly on your local filesystem with your credentials. The server never sees your code or your Anthropic API key; it only relays the WebSocket event stream between viewer and producer.
 
@@ -197,8 +197,8 @@ The maximum number of agent turns per invocation is capped at **50** (`maxTurns`
 The package also exports its core classes for use from other Node.js code:
 
 ```ts
-import { LocalClient, runClaude } from "@ccluster/client";
-import type { LocalClientOptions, RunClaudeOptions } from "@ccluster/client";
+import { LocalClient, runClaude } from "@mitchmyburgh/client";
+import type { LocalClientOptions, RunClaudeOptions } from "@mitchmyburgh/client";
 ```
 
 - **`LocalClient`** -- instantiate with `LocalClientOptions`, call `.connect()` to start, `.disconnect()` to stop.
@@ -208,16 +208,16 @@ import type { LocalClientOptions, RunClaudeOptions } from "@ccluster/client";
 
 ```bash
 # Type-check
-pnpm --filter @ccluster/client run typecheck
+pnpm --filter @mitchmyburgh/client run typecheck
 
 # Build
-pnpm --filter @ccluster/client run build
+pnpm --filter @mitchmyburgh/client run build
 
 # Watch mode (rebuilds on save)
-pnpm --filter @ccluster/client run dev
+pnpm --filter @mitchmyburgh/client run dev
 
 # Run tests
-pnpm --filter @ccluster/client run test
+pnpm --filter @mitchmyburgh/client run test
 ```
 
 ## License

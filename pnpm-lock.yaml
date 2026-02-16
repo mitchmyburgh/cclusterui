@@ -23,7 +23,7 @@ importers:
       '@anthropic-ai/claude-agent-sdk':
         specifier: ^0.2.42
         version: 0.2.42(zod@4.3.6)
-      '@ccluster/shared':
+      '@mitchmyburgh/shared':
         specifier: workspace:*
         version: link:../shared
       commander:
@@ -39,7 +39,7 @@ importers:
 
   packages/db:
     dependencies:
-      '@ccluster/shared':
+      '@mitchmyburgh/shared':
         specifier: workspace:*
         version: link:../shared
       better-sqlite3:
@@ -70,18 +70,18 @@ importers:
 
   packages/server:
     dependencies:
-      '@ccluster/db':
-        specifier: workspace:*
-        version: link:../db
-      '@ccluster/shared':
-        specifier: workspace:*
-        version: link:../shared
       '@hono/node-server':
         specifier: ^1.19.9
         version: 1.19.9(hono@4.11.9)
       '@hono/node-ws':
         specifier: ^1.3.0
         version: 1.3.0(@hono/node-server@1.19.9(hono@4.11.9))(hono@4.11.9)
+      '@mitchmyburgh/db':
+        specifier: workspace:*
+        version: link:../db
+      '@mitchmyburgh/shared':
+        specifier: workspace:*
+        version: link:../shared
       bcryptjs:
         specifier: ^3.0.2
         version: 3.0.3
@@ -103,7 +103,7 @@ importers:
 
   packages/tui:
     dependencies:
-      '@ccluster/shared':
+      '@mitchmyburgh/shared':
         specifier: workspace:*
         version: link:../shared
       commander:
@@ -146,7 +146,7 @@ importers:
 
   packages/ui:
     dependencies:
-      '@ccluster/shared':
+      '@mitchmyburgh/shared':
         specifier: workspace:*
         version: link:../shared
       react:

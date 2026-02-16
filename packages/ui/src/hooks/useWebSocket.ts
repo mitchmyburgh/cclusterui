@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from "react";
-import type { WSViewerEvent, WSServerToViewerEvent } from "@ccluster/shared";
+import type { WSViewerEvent, WSServerToViewerEvent } from "@mitchmyburgh/shared";
 
 export function useWebSocket(chatId: string, apiKey: string, onEvent: (event: WSServerToViewerEvent) => void) {
   const wsRef = useRef<WebSocket | null>(null);

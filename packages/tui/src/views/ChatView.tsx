@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Box, Text, useInput } from "ink";
 import Spinner from "ink-spinner";
-import type { Chat, Message, WSServerToViewerEvent } from "@ccluster/shared";
+import type { Chat, Message, WSServerToViewerEvent } from "@mitchmyburgh/shared";
 import type { ApiClient } from "../api.js";
 import { connectWs } from "../ws.js";
 import { MessageList } from "../components/MessageList.js";
