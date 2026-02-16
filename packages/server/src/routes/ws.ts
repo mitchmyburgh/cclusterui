@@ -20,6 +20,7 @@ export function createWsRoutes(upgradeWebSocket: any) {
       // ─── Producer Connection ───
       const hostname = c.req.query("hostname") || "unknown";
       const cwd = c.req.query("cwd") || "unknown";
+      const hitl = c.req.query("hitl") === "true";
 
       return {
         async onOpen(_evt: any, wsCtx: any) {
@@ -30,14 +31,14 @@ export function createWsRoutes(upgradeWebSocket: any) {
             return;
           }
 
-          const registered = connectionManager.registerProducer(chatId, wsCtx, userId, { hostname, cwd });
+          const registered = connectionManager.registerProducer(chatId, wsCtx, userId, { hostname, cwd, hitl });
           if (!registered) {
             wsCtx.send(JSON.stringify({ type: "error", error: "Producer already connected", code: "PRODUCER_EXISTS" }));
             wsCtx.close();
             return;
           }
 
-          console.log(`Producer connected: chat ${chatId} (user ${userId}, host ${hostname})`);
+          console.log(`Producer connected: chat ${chatId} (user ${userId}, host ${hostname}${hitl ? ", hitl" : ""})`);
         },
 
         async onMessage(evt: any, _wsCtx: any) {
@@ -48,6 +49,12 @@ export function createWsRoutes(upgradeWebSocket: any) {
 
             if (event.type === "heartbeat") {
               connectionManager.handleProducerHeartbeat(chatId);
+              return;
+            }
+
+            // Relay tool approval requests to viewers
+            if (event.type === "tool_approval_request") {
+              connectionManager.broadcastToViewers(chatId, event as unknown as WSServerToViewerEvent);
               return;
             }
 
@@ -152,6 +159,14 @@ export function createWsRoutes(upgradeWebSocket: any) {
               content: event.content,
               sessionId,
               messageHistory: history,
+            });
+          }
+
+          if (event.type === "tool_approval_response") {
+            // Relay approval response to producer
+            connectionManager.sendToProducer(chatId, {
+              type: "tool_approval_response",
+              response: event.response,
             });
           }
 

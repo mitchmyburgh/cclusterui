@@ -4,7 +4,8 @@ import { useWebSocket } from "../../hooks/useWebSocket";
 import { createApiClient } from "../../lib/api";
 import { ChatInput } from "./ChatInput";
 import { MessageBubble } from "./MessageBubble";
-import type { Chat, Message, MessageContent, WSServerToViewerEvent } from "@claude-chat/shared";
+import { ToolApprovalDialog } from "./ToolApprovalDialog";
+import type { Chat, Message, MessageContent, WSServerToViewerEvent, ToolApprovalRequest } from "@claude-chat/shared";
 
 interface ChatPanelProps {
   chatId: string;
@@ -20,6 +21,8 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
   const [status, setStatus] = useState<string>("idle");
   const [loading, setLoading] = useState(true);
   const [producerConnected, setProducerConnected] = useState(false);
+  const [hitlEnabled, setHitlEnabled] = useState(false);
+  const [pendingApproval, setPendingApproval] = useState<ToolApprovalRequest | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -79,6 +82,10 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
         break;
       case "producer_status":
         setProducerConnected(event.connected);
+        if ("hitl" in event) setHitlEnabled(!!event.hitl);
+        break;
+      case "tool_approval_request":
+        setPendingApproval(event.request);
         break;
       case "error":
         setStatus("idle");
@@ -108,7 +115,22 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
     setStreamingText("");
     setStreamingId(null);
     setStatus("idle");
+    setPendingApproval(null);
   }, [send]);
+
+  const handleApprovalResponse = useCallback((approved: boolean, alwaysAllow?: boolean) => {
+    if (!pendingApproval) return;
+    send({
+      type: "tool_approval_response",
+      response: {
+        requestId: pendingApproval.requestId,
+        approved,
+        alwaysAllow,
+        message: approved ? undefined : "User denied permission",
+      },
+    });
+    setPendingApproval(null);
+  }, [pendingApproval, send]);
 
   const isStreaming = streamingId !== null;
 
@@ -124,6 +146,11 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
           />
           {!connected && (
             <span className="rounded bg-yellow-600 px-1.5 py-0.5 text-[10px]">Reconnecting...</span>
+          )}
+          {hitlEnabled && (
+            <span className="rounded bg-yellow-800 px-1.5 py-0.5 text-[10px] text-yellow-300" title="Human-in-the-loop enabled">
+              HITL
+            </span>
           )}
           {status !== "idle" && (
             <span className="rounded bg-gray-700 px-1.5 py-0.5 text-[10px] text-gray-300">{status}</span>
@@ -164,6 +191,14 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
         )}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Tool Approval */}
+      {pendingApproval && (
+        <ToolApprovalDialog
+          request={pendingApproval}
+          onRespond={handleApprovalResponse}
+        />
+      )}
 
       {/* Input */}
       <ChatInput

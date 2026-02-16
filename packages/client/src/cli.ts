@@ -15,6 +15,7 @@ program
   .option("--password <password>", "Login with password (requires --username)")
   .option("--anthropic-key <key>", "Anthropic API key (defaults to ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN from env)")
   .option("--cwd <path>", "Working directory for Claude operations", ".")
+  .option("--hitl", "Enable human-in-the-loop approval for write/exec tools")
   .parse(process.argv);
 
 const opts = program.opts();
@@ -62,6 +63,7 @@ async function main() {
     apiKey,
     anthropicApiKey: opts.anthropicKey,
     cwd,
+    humanInTheLoop: !!opts.hitl,
   });
 
   // Graceful shutdown

@@ -3,6 +3,8 @@ import { hostname } from "os";
 import type {
   WSServerToProducerEvent,
   WSProducerEvent,
+  ToolApprovalRequest,
+  ToolApprovalResponse,
 } from "@claude-chat/shared";
 import { WS_HEARTBEAT_INTERVAL } from "@claude-chat/shared";
 import { runClaude } from "./claude-runner.js";
@@ -13,6 +15,7 @@ export interface LocalClientOptions {
   apiKey: string;
   anthropicApiKey?: string;
   cwd: string;
+  humanInTheLoop?: boolean;
 }
 
 export class LocalClient {
@@ -23,6 +26,10 @@ export class LocalClient {
   private shouldRun = true;
   private options: LocalClientOptions;
   private _chatId: string | undefined;
+  private pendingApprovals = new Map<
+    string,
+    { resolve: (response: ToolApprovalResponse) => void }
+  >();
 
   constructor(options: LocalClientOptions) {
     this.options = options;
@@ -46,7 +53,9 @@ export class LocalClient {
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      throw new Error(`Failed to create chat: ${(body as any).error || res.statusText}`);
+      throw new Error(
+        `Failed to create chat: ${(body as any).error || res.statusText}`
+      );
     }
 
     const json = (await res.json()) as { data: { id: string } };
@@ -67,13 +76,17 @@ export class LocalClient {
       const chatId = this._chatId!;
       const wsUrl = serverUrl.replace(/^http/, "ws");
       const host = hostname();
-      const url = `${wsUrl}/api/chats/${chatId}/ws?token=${encodeURIComponent(apiKey)}&role=producer&hostname=${encodeURIComponent(host)}&cwd=${encodeURIComponent(cwd)}`;
+      const hitl = this.options.humanInTheLoop ? "&hitl=true" : "";
+      const url = `${wsUrl}/api/chats/${chatId}/ws?token=${encodeURIComponent(apiKey)}&role=producer&hostname=${encodeURIComponent(host)}&cwd=${encodeURIComponent(cwd)}${hitl}`;
 
       const ws = new WebSocket(url);
       this.ws = ws;
 
       ws.on("open", () => {
         console.log(`Connected to server as producer for chat ${chatId}`);
+        if (this.options.humanInTheLoop) {
+          console.log("Human-in-the-loop: enabled (write/exec tools require approval)");
+        }
         this.startHeartbeat();
         resolve();
       });
@@ -91,6 +104,16 @@ export class LocalClient {
         console.log("Disconnected from server");
         this.stopHeartbeat();
         this.ws = null;
+
+        // Reject any pending approvals
+        for (const [id, pending] of this.pendingApprovals) {
+          pending.resolve({
+            requestId: id,
+            approved: false,
+            message: "Connection lost",
+          });
+        }
+        this.pendingApprovals.clear();
 
         if (this.shouldRun && !this.reconnecting) {
           this.reconnecting = true;
@@ -116,7 +139,9 @@ export class LocalClient {
     });
   }
 
-  private async handleServerEvent(event: WSServerToProducerEvent): Promise<void> {
+  private async handleServerEvent(
+    event: WSServerToProducerEvent
+  ): Promise<void> {
     switch (event.type) {
       case "process_message": {
         // Cancel any running session
@@ -135,16 +160,32 @@ export class LocalClient {
             anthropicApiKey: this.options.anthropicApiKey,
             cwd: this.options.cwd,
             abortSignal: this.abortController.signal,
+            humanInTheLoop: this.options.humanInTheLoop,
+            onToolApproval: this.options.humanInTheLoop
+              ? (request) => this.requestToolApproval(request)
+              : undefined,
           })) {
             this.send(producerEvent);
           }
         } catch (err: any) {
           if (err.name !== "AbortError") {
-            this.send({ type: "error", error: err.message || "Unknown error" });
+            this.send({
+              type: "error",
+              error: err.message || "Unknown error",
+            });
           }
         }
 
         this.abortController = null;
+        break;
+      }
+
+      case "tool_approval_response": {
+        const pending = this.pendingApprovals.get(event.response.requestId);
+        if (pending) {
+          this.pendingApprovals.delete(event.response.requestId);
+          pending.resolve(event.response);
+        }
         break;
       }
 
@@ -154,9 +195,27 @@ export class LocalClient {
           this.abortController.abort();
           this.abortController = null;
         }
+        // Also reject pending approvals on cancel
+        for (const [id, pending] of this.pendingApprovals) {
+          pending.resolve({
+            requestId: id,
+            approved: false,
+            message: "Operation cancelled",
+          });
+        }
+        this.pendingApprovals.clear();
         break;
       }
     }
+  }
+
+  private requestToolApproval(
+    request: ToolApprovalRequest
+  ): Promise<ToolApprovalResponse> {
+    return new Promise((resolve) => {
+      this.pendingApprovals.set(request.requestId, { resolve });
+      this.send({ type: "tool_approval_request", request });
+    });
   }
 
   private send(event: WSProducerEvent): void {
@@ -185,6 +244,15 @@ export class LocalClient {
       this.abortController.abort();
       this.abortController = null;
     }
+    // Reject pending approvals
+    for (const [id, pending] of this.pendingApprovals) {
+      pending.resolve({
+        requestId: id,
+        approved: false,
+        message: "Client disconnected",
+      });
+    }
+    this.pendingApprovals.clear();
     if (this.ws) {
       this.ws.close();
       this.ws = null;

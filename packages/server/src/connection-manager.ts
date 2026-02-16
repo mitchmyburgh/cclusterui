@@ -10,6 +10,7 @@ interface ProducerConnection {
   userId: string;
   hostname: string;
   cwd: string;
+  hitl: boolean;
   connectedAt: string;
   lastHeartbeat: number;
 }
@@ -33,7 +34,7 @@ export class ConnectionManager {
     chatId: string,
     ws: any,
     userId: string,
-    info: { hostname: string; cwd: string }
+    info: { hostname: string; cwd: string; hitl?: boolean }
   ): boolean {
     if (this.producers.has(chatId)) {
       return false; // Already has a producer
@@ -44,6 +45,7 @@ export class ConnectionManager {
       userId,
       hostname: info.hostname,
       cwd: info.cwd,
+      hitl: info.hitl || false,
       connectedAt: new Date().toISOString(),
       lastHeartbeat: Date.now(),
     });
@@ -54,6 +56,7 @@ export class ConnectionManager {
       hostname: info.hostname,
       cwd: info.cwd,
       connectedAt: this.producers.get(chatId)!.connectedAt,
+      hitl: info.hitl || false,
     });
 
     return true;
@@ -81,6 +84,7 @@ export class ConnectionManager {
           hostname: producer.hostname,
           cwd: producer.cwd,
           connectedAt: producer.connectedAt,
+          hitl: producer.hitl,
         }
       : { type: "producer_status", connected: false };
 
@@ -122,6 +126,7 @@ export class ConnectionManager {
     hostname?: string;
     cwd?: string;
     connectedAt?: string;
+    hitl?: boolean;
   } {
     const producer = this.producers.get(chatId);
     if (!producer) return { connected: false };
@@ -130,6 +135,7 @@ export class ConnectionManager {
       hostname: producer.hostname,
       cwd: producer.cwd,
       connectedAt: producer.connectedAt,
+      hitl: producer.hitl,
     };
   }
 
