@@ -5,10 +5,42 @@ import type { AppEnv } from "../types.js";
 
 const auth = new Hono<AppEnv>();
 
+// Simple in-memory rate limiter (H2)
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const RATE_LIMIT_MAX = 10;
+
+function isRateLimited(key: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(key);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+  entry.count++;
+  return entry.count > RATE_LIMIT_MAX;
+}
+
+function getClientIp(c: any): string {
+  return (
+    c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ||
+    c.req.header("x-real-ip") ||
+    "unknown"
+  );
+}
+
 // POST /auth/register
 auth.post("/auth/register", async (c) => {
   const repo = c.get("repo");
   const config = c.get("config");
+
+  const ip = getClientIp(c);
+  if (isRateLimited(`register:${ip}`)) {
+    return c.json(
+      { error: "Too many requests. Try again later.", code: "RATE_LIMITED", status: 429 },
+      429
+    );
+  }
 
   if (!config.jwtSecret) {
     return c.json(
@@ -34,19 +66,19 @@ auth.post("/auth/register", async (c) => {
     );
   }
 
+  // Use a generic error for both "not allowed" and "already taken" to prevent user enumeration (L3)
   if (!config.allowedUsernames.includes(body.username)) {
     return c.json(
-      { error: "Username not allowed to register", code: "USERNAME_NOT_ALLOWED", status: 403 },
+      { error: "Registration failed", code: "REGISTRATION_FAILED", status: 403 },
       403
     );
   }
 
-  // Check if username exists
   const existing = await repo.getUserByUsername(body.username);
   if (existing) {
     return c.json(
-      { error: "Username already taken", code: "USERNAME_TAKEN", status: 409 },
-      409
+      { error: "Registration failed", code: "REGISTRATION_FAILED", status: 403 },
+      403
     );
   }
 
@@ -57,7 +89,7 @@ auth.post("/auth/register", async (c) => {
   const token = await new SignJWT({ userId: user.id, username: user.username })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("30d")
+    .setExpirationTime("7d")
     .sign(secretKey);
 
   return c.json({
@@ -77,6 +109,14 @@ auth.post("/auth/register", async (c) => {
 auth.post("/auth/login", async (c) => {
   const repo = c.get("repo");
   const config = c.get("config");
+
+  const ip = getClientIp(c);
+  if (isRateLimited(`login:${ip}`)) {
+    return c.json(
+      { error: "Too many requests. Try again later.", code: "RATE_LIMITED", status: 429 },
+      429
+    );
+  }
 
   if (!config.jwtSecret) {
     return c.json(
@@ -114,7 +154,7 @@ auth.post("/auth/login", async (c) => {
   const token = await new SignJWT({ userId: user.id, username: user.username })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("30d")
+    .setExpirationTime("7d")
     .sign(secretKey);
 
   return c.json({

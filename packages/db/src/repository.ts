@@ -17,7 +17,7 @@ export interface ChatRepository {
   listChats(userId: string, params?: PaginationParams): Promise<{ chats: Chat[]; total: number }>;
   updateChat(id: string, userId: string, input: UpdateChatInput): Promise<Chat | null>;
   deleteChat(id: string, userId: string): Promise<boolean>;
-  setChatSession(chatId: string, sessionId: string): Promise<void>;
+  setChatSession(chatId: string, sessionId: string, userId: string): Promise<void>;
 
   // Message operations
   addMessage(

@@ -193,7 +193,7 @@ export class MysqlRepository implements ChatRepository {
     return true;
   }
 
-  async setChatSession(chatId: string, sessionId: string): Promise<void> {
+  async setChatSession(chatId: string, sessionId: string, userId: string): Promise<void> {
     const updatedAt = new Date().toISOString();
 
     await this.db
@@ -202,7 +202,7 @@ export class MysqlRepository implements ChatRepository {
         sessionId,
         updatedAt,
       })
-      .where(eq(schema.chats.id, chatId));
+      .where(and(eq(schema.chats.id, chatId), eq(schema.chats.userId, userId)));
   }
 
   // Message operations
@@ -261,14 +261,20 @@ export class MysqlRepository implements ChatRepository {
       .from(schema.messages)
       .where(eq(schema.messages.chatId, chatId));
 
-    const messages: Message[] = results.map((row) => ({
-      id: row.id,
-      chatId: row.chatId,
-      role: row.role as "user" | "assistant",
-      content: JSON.parse(row.content) as MessageContent[],
-      createdAt: row.createdAt,
-      metadata: row.metadata ? (JSON.parse(row.metadata) as MessageMetadata) : undefined,
-    }));
+    const messages: Message[] = results.map((row) => {
+      let content: MessageContent[] = [];
+      let metadata: MessageMetadata | undefined;
+      try { content = JSON.parse(row.content) as MessageContent[]; } catch { /* invalid JSON */ }
+      try { metadata = row.metadata ? (JSON.parse(row.metadata) as MessageMetadata) : undefined; } catch { /* invalid JSON */ }
+      return {
+        id: row.id,
+        chatId: row.chatId,
+        role: row.role as "user" | "assistant",
+        content,
+        createdAt: row.createdAt,
+        metadata,
+      };
+    });
 
     return {
       messages,
@@ -288,13 +294,17 @@ export class MysqlRepository implements ChatRepository {
     }
 
     const row = result[0];
+    let content: MessageContent[] = [];
+    let metadata: MessageMetadata | undefined;
+    try { content = JSON.parse(row.content) as MessageContent[]; } catch { /* invalid JSON */ }
+    try { metadata = row.metadata ? (JSON.parse(row.metadata) as MessageMetadata) : undefined; } catch { /* invalid JSON */ }
     return {
       id: row.id,
       chatId: row.chatId,
       role: row.role as "user" | "assistant",
-      content: JSON.parse(row.content) as MessageContent[],
+      content,
       createdAt: row.createdAt,
-      metadata: row.metadata ? (JSON.parse(row.metadata) as MessageMetadata) : undefined,
+      metadata,
     };
   }
 

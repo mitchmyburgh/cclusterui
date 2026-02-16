@@ -204,11 +204,11 @@ export class MongoRepository implements ChatRepository {
     return true;
   }
 
-  async setChatSession(chatId: string, sessionId: string): Promise<void> {
+  async setChatSession(chatId: string, sessionId: string, userId: string): Promise<void> {
     const updatedAt = new Date().toISOString();
 
     await this.chats.updateOne(
-      { _id: chatId },
+      { _id: chatId, userId },
       {
         $set: {
           sessionId,

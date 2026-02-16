@@ -1,6 +1,6 @@
 import { createMiddleware } from "hono/factory";
 import { jwtVerify } from "jose";
-import { createHash } from "crypto";
+import { createHash, timingSafeEqual } from "crypto";
 import type { ChatRepository } from "@mitchmyburgh/db";
 import type { AppEnv } from "../types.js";
 import type { ServerConfig } from "../config.js";
@@ -69,8 +69,12 @@ export function authMiddleware(config: ServerConfig, repo: ChatRepository) {
       }
     }
 
-    // 3. Fall back to legacy API_KEYS env
-    if (config.apiKeys.includes(token)) {
+    // 3. Fall back to legacy API_KEYS env (timing-safe comparison - M5)
+    const tokenBuf = Buffer.from(token);
+    if (config.apiKeys.some((key) => {
+      const keyBuf = Buffer.from(key);
+      return tokenBuf.length === keyBuf.length && timingSafeEqual(tokenBuf, keyBuf);
+    })) {
       c.set("apiKey", token);
       c.set("userId", "system");
       c.set("username", "system");

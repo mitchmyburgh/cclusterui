@@ -23,8 +23,11 @@ export class PgRepository implements ChatRepository {
   private pool: pg.Pool;
   private db: ReturnType<typeof drizzle>;
 
-  constructor(config: { connectionString: string }) {
-    this.pool = new Pool({ connectionString: config.connectionString });
+  constructor(config: { connectionString: string; ssl?: boolean }) {
+    this.pool = new Pool({
+      connectionString: config.connectionString,
+      ...(config.ssl !== false ? { ssl: { rejectUnauthorized: true } } : {}),
+    });
     this.db = drizzle(this.pool);
   }
 
@@ -195,7 +198,7 @@ export class PgRepository implements ChatRepository {
     return true;
   }
 
-  async setChatSession(chatId: string, sessionId: string): Promise<void> {
+  async setChatSession(chatId: string, sessionId: string, userId: string): Promise<void> {
     const updatedAt = new Date().toISOString();
 
     await this.db
@@ -204,7 +207,7 @@ export class PgRepository implements ChatRepository {
         sessionId,
         updatedAt,
       })
-      .where(eq(schema.chats.id, chatId));
+      .where(and(eq(schema.chats.id, chatId), eq(schema.chats.userId, userId)));
   }
 
   // Message operations
@@ -263,14 +266,20 @@ export class PgRepository implements ChatRepository {
       .from(schema.messages)
       .where(eq(schema.messages.chatId, chatId));
 
-    const messages: Message[] = results.map((row) => ({
-      id: row.id,
-      chatId: row.chatId,
-      role: row.role as "user" | "assistant",
-      content: JSON.parse(row.content) as MessageContent[],
-      createdAt: row.createdAt,
-      metadata: row.metadata ? (JSON.parse(row.metadata) as MessageMetadata) : undefined,
-    }));
+    const messages: Message[] = results.map((row) => {
+      let content: MessageContent[] = [];
+      let metadata: MessageMetadata | undefined;
+      try { content = JSON.parse(row.content) as MessageContent[]; } catch { /* invalid JSON */ }
+      try { metadata = row.metadata ? (JSON.parse(row.metadata) as MessageMetadata) : undefined; } catch { /* invalid JSON */ }
+      return {
+        id: row.id,
+        chatId: row.chatId,
+        role: row.role as "user" | "assistant",
+        content,
+        createdAt: row.createdAt,
+        metadata,
+      };
+    });
 
     return {
       messages,
@@ -290,13 +299,17 @@ export class PgRepository implements ChatRepository {
     }
 
     const row = result[0];
+    let content: MessageContent[] = [];
+    let metadata: MessageMetadata | undefined;
+    try { content = JSON.parse(row.content) as MessageContent[]; } catch { /* invalid JSON */ }
+    try { metadata = row.metadata ? (JSON.parse(row.metadata) as MessageMetadata) : undefined; } catch { /* invalid JSON */ }
     return {
       id: row.id,
       chatId: row.chatId,
       role: row.role as "user" | "assistant",
-      content: JSON.parse(row.content) as MessageContent[],
+      content,
       createdAt: row.createdAt,
-      metadata: row.metadata ? (JSON.parse(row.metadata) as MessageMetadata) : undefined,
+      metadata,
     };
   }
 

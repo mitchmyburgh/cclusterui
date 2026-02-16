@@ -28,7 +28,8 @@ export default defineConfig({
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
         runtimeCaching: [
           {
-            urlPattern: /^\/api\/.*/i,
+            // Only cache non-sensitive API endpoints (exclude auth, keys)
+            urlPattern: /^\/api\/chats(?:\/[^/]+\/messages)?(?:\?.*)?$/i,
             handler: "NetworkFirst",
             options: {
               cacheName: "api-cache",

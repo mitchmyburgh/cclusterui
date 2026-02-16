@@ -118,7 +118,7 @@ describe("SqliteRepository", () => {
 
     it("should set chat session", async () => {
       const chat = await repo.createChat({ title: "Test Chat" }, testUserId);
-      await repo.setChatSession(chat.id, "session-123");
+      await repo.setChatSession(chat.id, "session-123", testUserId);
 
       const retrieved = await repo.getChat(chat.id, testUserId);
       expect(retrieved?.sessionId).toBe("session-123");

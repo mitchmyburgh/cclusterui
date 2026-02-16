@@ -9,7 +9,6 @@ export interface Chat {
 
 export interface CreateChatInput {
   title?: string;
-  userId?: string;
 }
 
 export interface UpdateChatInput {

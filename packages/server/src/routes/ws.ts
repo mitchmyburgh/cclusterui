@@ -1,9 +1,15 @@
 import { Hono } from "hono";
 import type { AppEnv } from "../types.js";
 import type {
-  WSViewerEvent,
   WSServerToViewerEvent,
-  WSProducerEvent,
+} from "@mitchmyburgh/shared";
+import {
+  validateProducerEvent,
+  validateViewerEvent,
+  validateMessageContent,
+  sanitizeObject,
+  ValidationError,
+  MAX_WS_MESSAGE_SIZE,
 } from "@mitchmyburgh/shared";
 
 export function createWsRoutes(upgradeWebSocket: any) {
@@ -43,30 +49,43 @@ export function createWsRoutes(upgradeWebSocket: any) {
 
         async onMessage(evt: any, _wsCtx: any) {
           try {
-            const event: WSProducerEvent = JSON.parse(
-              typeof evt.data === "string" ? evt.data : evt.data.toString()
-            );
+            const raw = typeof evt.data === "string" ? evt.data : evt.data.toString();
+
+            // Enforce message size limit (M8)
+            if (raw.length > MAX_WS_MESSAGE_SIZE) {
+              console.error(`Producer message too large (chat ${chatId}): ${raw.length} bytes`);
+              return;
+            }
+
+            const parsed = JSON.parse(raw);
+            // Validate and sanitize producer event (C1, H4)
+            const event = validateProducerEvent(sanitizeObject(parsed));
 
             if (event.type === "heartbeat") {
               connectionManager.handleProducerHeartbeat(chatId);
               return;
             }
 
-            // Relay tool approval requests to viewers
+            // Relay tool approval requests to viewers (sanitized)
             if (event.type === "tool_approval_request") {
               connectionManager.broadcastToViewers(chatId, event as unknown as WSServerToViewerEvent);
               return;
             }
 
             if (event.type === "message_complete") {
-              // Persist assistant message to DB
+              // Validate message content including image data (H5)
+              if (!validateMessageContent(event.message.content)) {
+                console.error(`Invalid message content from producer (chat ${chatId})`);
+                return;
+              }
+
               const content = event.message.content;
               const metadata = event.message.metadata;
               const assistantMsg = await repo.addMessage(chatId, "assistant", content, metadata);
 
-              // Update session ID if provided
+              // Update session ID if provided - pass userId (C3)
               if (event.sessionId) {
-                await repo.setChatSession(chatId, event.sessionId);
+                await repo.setChatSession(chatId, event.sessionId, userId);
               }
 
               // Auto-title: if chat has no session yet, set title from first response
@@ -86,10 +105,14 @@ export function createWsRoutes(upgradeWebSocket: any) {
               return;
             }
 
-            // Relay all other events directly to viewers
+            // Relay all other validated events directly to viewers
             connectionManager.broadcastToViewers(chatId, event as WSServerToViewerEvent);
           } catch (err: any) {
-            console.error(`Producer message error (chat ${chatId}):`, err.message);
+            if (err instanceof ValidationError) {
+              console.error(`Invalid producer message (chat ${chatId}): ${err.message}`);
+            } else {
+              console.error(`Producer message error (chat ${chatId}):`, err.message);
+            }
           }
         },
 
@@ -117,11 +140,25 @@ export function createWsRoutes(upgradeWebSocket: any) {
 
       async onMessage(evt: any, _wsCtx: any) {
         try {
-          const event: WSViewerEvent = JSON.parse(
-            typeof evt.data === "string" ? evt.data : evt.data.toString()
-          );
+          const raw = typeof evt.data === "string" ? evt.data : evt.data.toString();
+
+          // Enforce message size limit (M8)
+          if (raw.length > MAX_WS_MESSAGE_SIZE) {
+            connectionManager.broadcastToViewers(chatId, { type: "error", error: "Message too large" });
+            return;
+          }
+
+          const parsed = JSON.parse(raw);
+          // Validate and sanitize viewer event (C1, H4)
+          const event = validateViewerEvent(sanitizeObject(parsed));
 
           if (event.type === "send_message") {
+            // Validate message content including image data (H5)
+            if (!validateMessageContent(event.content)) {
+              connectionManager.broadcastToViewers(chatId, { type: "error", error: "Invalid message content" });
+              return;
+            }
+
             // Verify chat ownership
             const chat = await repo.getChat(chatId, userId);
             if (!chat) {
@@ -150,7 +187,7 @@ export function createWsRoutes(upgradeWebSocket: any) {
 
             // Get session ID and message history for the producer
             const sessionId = chat.sessionId || null;
-            const history = await repo.getMessages(chatId);
+            const { messages: history } = await repo.getMessages(chatId);
 
             // Send process request to producer
             connectionManager.sendToProducer(chatId, {
@@ -174,9 +211,12 @@ export function createWsRoutes(upgradeWebSocket: any) {
             connectionManager.sendToProducer(chatId, { type: "cancel" });
           }
         } catch (err: any) {
+          const errorMsg = err instanceof ValidationError
+            ? "Invalid message format"
+            : "Failed to process message";
           connectionManager.broadcastToViewers(chatId, {
             type: "error",
-            error: err.message || "Unknown error",
+            error: errorMsg,
           });
         }
       },

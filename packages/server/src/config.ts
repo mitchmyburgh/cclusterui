@@ -18,6 +18,14 @@ export interface ServerConfig {
 
 export function loadConfig(): ServerConfig {
   const jwtSecret = process.env.JWT_SECRET || "";
+  const apiKeys = (process.env.API_KEYS || "").split(",").filter(Boolean);
+
+  if (!jwtSecret && apiKeys.length === 0) {
+    throw new Error(
+      "FATAL: No authentication configured. Set JWT_SECRET and/or API_KEYS environment variable(s)."
+    );
+  }
+
   if (!jwtSecret) {
     console.warn("WARNING: JWT_SECRET not set. JWT auth will be disabled.");
   }
@@ -25,7 +33,7 @@ export function loadConfig(): ServerConfig {
   return {
     port: parseInt(process.env.PORT || "3000", 10),
     host: process.env.HOST || "0.0.0.0",
-    apiKeys: (process.env.API_KEYS || "").split(",").filter(Boolean),
+    apiKeys,
     jwtSecret,
     allowedUsernames: (process.env.ALLOWED_USERNAMES || "").split(",").filter(Boolean),
     db: {

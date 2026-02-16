@@ -9,15 +9,17 @@ export interface StoredUser {
 }
 
 export function getStoredToken(): string | null {
-  return localStorage.getItem(TOKEN_STORAGE_KEY) || localStorage.getItem(API_KEY_STORAGE_KEY);
+  return sessionStorage.getItem(TOKEN_STORAGE_KEY) || localStorage.getItem(API_KEY_STORAGE_KEY);
 }
 
 export function setStoredToken(token: string): void {
-  localStorage.setItem(TOKEN_STORAGE_KEY, token);
+  sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
+  // Clean up any legacy localStorage token
+  localStorage.removeItem(TOKEN_STORAGE_KEY);
 }
 
 export function getStoredUser(): StoredUser | null {
-  const raw = localStorage.getItem(USER_STORAGE_KEY);
+  const raw = sessionStorage.getItem(USER_STORAGE_KEY);
   if (!raw) return null;
   try {
     return JSON.parse(raw) as StoredUser;
@@ -27,13 +29,24 @@ export function getStoredUser(): StoredUser | null {
 }
 
 export function setStoredUser(user: StoredUser): void {
-  localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+  sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
 }
 
-export function clearAuth(): void {
+export async function clearAuth(): Promise<void> {
+  sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+  sessionStorage.removeItem(USER_STORAGE_KEY);
   localStorage.removeItem(TOKEN_STORAGE_KEY);
   localStorage.removeItem(USER_STORAGE_KEY);
   localStorage.removeItem(API_KEY_STORAGE_KEY);
+
+  // Clear PWA api-cache on logout (H11)
+  if ("caches" in window) {
+    try {
+      await caches.delete("api-cache");
+    } catch {
+      // ignore cache deletion errors
+    }
+  }
 }
 
 // Legacy compat

@@ -71,8 +71,14 @@ export async function* runClaude(
     ],
     cwd,
     env: {
-      ...process.env,
-      ...(anthropicApiKey ? { ANTHROPIC_API_KEY: anthropicApiKey } : {}),
+      PATH: process.env.PATH,
+      HOME: process.env.HOME,
+      SHELL: process.env.SHELL,
+      USER: process.env.USER,
+      TERM: process.env.TERM,
+      NODE_ENV: process.env.NODE_ENV,
+      ANTHROPIC_API_KEY: anthropicApiKey || process.env.ANTHROPIC_API_KEY || "",
+      CLAUDE_CODE_OAUTH_TOKEN: process.env.CLAUDE_CODE_OAUTH_TOKEN || "",
       CLAUDE_MODEL: process.env.CLAUDE_MODEL || "claude-opus-4-6",
     },
     maxTurns: 50,
@@ -115,6 +121,8 @@ export async function* runClaude(
       };
     };
   } else {
+    console.warn("WARNING: Running without human-in-the-loop. The agent can execute arbitrary commands.");
+    console.warn("Use --hitl flag for safer operation.");
     queryOptions.permissionMode = "bypassPermissions";
     queryOptions.allowDangerouslySkipPermissions = true;
   }

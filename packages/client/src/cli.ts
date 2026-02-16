@@ -10,10 +10,10 @@ program
   .description("Local client that runs Claude Agent SDK against your codebase")
   .requiredOption("--server <url>", "Server URL (e.g., http://localhost:3000)")
   .option("--chat <id>", "Chat ID to connect to (omit to create a new chat)")
-  .option("--api-key <key>", "API key or JWT token for authentication")
+  .option("--api-key <key>", "API key or JWT token (prefer CC_API_KEY env var)")
   .option("--username <username>", "Login with username (requires --password)")
-  .option("--password <password>", "Login with password (requires --username)")
-  .option("--anthropic-key <key>", "Anthropic API key (defaults to ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN from env)")
+  .option("--password <password>", "Login with password (prefer CC_PASSWORD env var)")
+  .option("--anthropic-key <key>", "Anthropic API key (prefer ANTHROPIC_API_KEY env var)")
   .option("--cwd <path>", "Working directory for Claude operations", ".")
   .option("--hitl", "Enable human-in-the-loop approval for write/exec tools")
   .option("--name <name>", "Set the chat title (only used when creating a new chat)")
@@ -22,15 +22,28 @@ program
 const opts = program.opts();
 
 async function main() {
-  let apiKey = opts.apiKey;
+  // Prefer env vars over CLI args for secrets (H6)
+  let apiKey = process.env.CC_API_KEY || opts.apiKey;
+  const password = process.env.CC_PASSWORD || opts.password;
+  const anthropicKey = process.env.ANTHROPIC_API_KEY || opts.anthropicKey;
+
+  if (opts.apiKey || opts.password) {
+    console.warn("WARNING: Passing secrets via CLI flags exposes them in process listings.");
+    console.warn("Prefer environment variables: CC_API_KEY, CC_PASSWORD, ANTHROPIC_API_KEY");
+  }
+
+  // Warn about HTTP (M12)
+  if (opts.server?.startsWith("http://") && !opts.server.includes("localhost") && !opts.server.includes("127.0.0.1")) {
+    console.warn("WARNING: Using unencrypted HTTP connection. Credentials may be transmitted in cleartext.");
+  }
 
   // Login if username/password provided
-  if (opts.username && opts.password && !apiKey) {
+  if (opts.username && password && !apiKey) {
     console.log(`Logging in as ${opts.username}...`);
     const res = await fetch(`${opts.server}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: opts.username, password: opts.password }),
+      body: JSON.stringify({ username: opts.username, password }),
     });
 
     if (!res.ok) {
@@ -62,7 +75,7 @@ async function main() {
     serverUrl: opts.server,
     chatId: opts.chat,
     apiKey,
-    anthropicApiKey: opts.anthropicKey,
+    anthropicApiKey: anthropicKey,
     cwd,
     humanInTheLoop: !!opts.hitl,
     chatName: opts.name,
