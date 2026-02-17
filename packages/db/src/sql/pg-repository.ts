@@ -26,7 +26,7 @@ export class PgRepository implements ChatRepository {
   constructor(config: { connectionString: string; ssl?: boolean }) {
     this.pool = new Pool({
       connectionString: config.connectionString,
-      ...(config.ssl !== false ? { ssl: { rejectUnauthorized: true } } : {}),
+      ...(config.ssl !== false ? { ssl: { rejectUnauthorized: false } } : {}),
     });
     this.db = drizzle(this.pool);
   }
