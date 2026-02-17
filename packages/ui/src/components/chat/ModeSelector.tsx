@@ -7,9 +7,9 @@ interface ModeSelectorProps {
 }
 
 const MODE_OPTIONS: { value: AgentMode; label: string; color: string }[] = [
-  { value: "plan", label: "Plan", color: "bg-yellow-600" },
-  { value: "human_confirm", label: "Confirm", color: "bg-orange-600" },
-  { value: "accept_all", label: "Auto", color: "bg-green-600" },
+  { value: "plan", label: "Plan", color: "bg-amber-500" },
+  { value: "human_confirm", label: "Confirm", color: "bg-orange-500" },
+  { value: "accept_all", label: "Auto", color: "bg-emerald-500" },
 ];
 
 export function ModeSelector({ mode, onChange, disabled }: ModeSelectorProps) {

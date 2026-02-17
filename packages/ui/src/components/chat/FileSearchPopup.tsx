@@ -61,13 +61,13 @@ export function FileSearchPopup({ results, loading, onSearch, onSelect, onClose 
   }, [results, selectedIndex, onSelect, onClose, searchType, handleTabSwitch]);
 
   return (
-    <div className="absolute bottom-full left-0 right-0 mb-1 max-h-64 overflow-hidden rounded-lg border border-gray-600 bg-gray-800 shadow-lg">
+    <div className="absolute bottom-full left-0 right-0 mb-1 max-h-64 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
       {/* Tabs */}
-      <div className="flex border-b border-gray-700">
+      <div className="flex border-b border-gray-200">
         <button
           onClick={() => handleTabSwitch("filename")}
           className={`flex-1 px-3 py-1.5 text-xs font-medium ${
-            searchType === "filename" ? "bg-gray-700 text-white" : "text-gray-400 hover:text-gray-300"
+            searchType === "filename" ? "bg-[#cb3837] text-white" : "text-gray-500 hover:text-gray-700"
           }`}
         >
           Files
@@ -75,7 +75,7 @@ export function FileSearchPopup({ results, loading, onSearch, onSelect, onClose 
         <button
           onClick={() => handleTabSwitch("content")}
           className={`flex-1 px-3 py-1.5 text-xs font-medium ${
-            searchType === "content" ? "bg-gray-700 text-white" : "text-gray-400 hover:text-gray-300"
+            searchType === "content" ? "bg-[#cb3837] text-white" : "text-gray-500 hover:text-gray-700"
           }`}
         >
           Content
@@ -83,7 +83,7 @@ export function FileSearchPopup({ results, loading, onSearch, onSelect, onClose 
       </div>
 
       {/* Search input */}
-      <div className="border-b border-gray-700 p-2">
+      <div className="border-b border-gray-200 p-2">
         <input
           ref={inputRef}
           type="text"
@@ -91,7 +91,7 @@ export function FileSearchPopup({ results, loading, onSearch, onSelect, onClose 
           onChange={(e) => handleQueryChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={searchType === "filename" ? "Search files..." : "Search content..."}
-          className="w-full rounded bg-gray-700 px-3 py-1.5 text-sm text-white placeholder-gray-400 outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full rounded bg-gray-50 px-3 py-1.5 text-sm text-gray-900 placeholder-gray-400 border border-gray-200 outline-none focus:ring-1 focus:ring-[#cb3837]"
         />
       </div>
 
@@ -99,10 +99,10 @@ export function FileSearchPopup({ results, loading, onSearch, onSelect, onClose 
       <div className="max-h-48 overflow-y-auto">
         {loading ? (
           <div className="flex items-center justify-center py-3">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-500 border-t-blue-500" />
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-200 border-t-[#cb3837]" />
           </div>
         ) : results.length === 0 ? (
-          <div className="px-3 py-2 text-xs text-gray-500">
+          <div className="px-3 py-2 text-xs text-gray-400">
             {query ? "No results found" : "Type to search..."}
           </div>
         ) : (
@@ -111,12 +111,12 @@ export function FileSearchPopup({ results, loading, onSearch, onSelect, onClose 
               key={`${result.path}-${result.lineNumber ?? idx}`}
               onClick={() => onSelect(result)}
               className={`w-full px-3 py-1.5 text-left text-xs ${
-                idx === selectedIndex ? "bg-blue-600 text-white" : "text-gray-300 hover:bg-gray-700"
+                idx === selectedIndex ? "bg-[#cb3837] text-white" : "text-gray-700 hover:bg-gray-50"
               }`}
             >
               <div className="truncate font-mono">{result.path}</div>
               {result.type === "content_match" && result.lineNumber && (
-                <div className="truncate text-[10px] text-gray-400">
+                <div className="truncate text-[10px] text-gray-500">
                   L{result.lineNumber}: {result.lineContent}
                 </div>
               )}

@@ -19,7 +19,7 @@ export function ChatList({ chats, activeChatIds, onSelectChat, onDeleteChat, loa
   if (loading) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-500 border-t-blue-500" />
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-200 border-t-[#cb3837]" />
       </div>
     );
   }
@@ -32,12 +32,12 @@ export function ChatList({ chats, activeChatIds, onSelectChat, onDeleteChat, loa
           placeholder="Search chats..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-md bg-gray-700 px-3 py-2 text-sm text-white placeholder-gray-400 outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full rounded-md bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 border border-gray-200 outline-none focus:ring-1 focus:ring-[#cb3837] focus:border-[#cb3837]"
         />
       </div>
       <div className="flex-1 overflow-y-auto">
         {filtered.length === 0 ? (
-          <p className="px-4 py-8 text-center text-sm text-gray-500">
+          <p className="px-4 py-8 text-center text-sm text-gray-400">
             {search ? "No results" : "No chats yet"}
           </p>
         ) : (
@@ -47,19 +47,19 @@ export function ChatList({ chats, activeChatIds, onSelectChat, onDeleteChat, loa
               <div
                 key={chat.id}
                 onClick={() => onSelectChat(chat.id)}
-                className={`group flex cursor-pointer items-center justify-between px-4 py-3 transition-colors hover:bg-gray-800 ${
-                  isActive ? "bg-gray-800 border-l-2 border-blue-500" : "border-l-2 border-transparent"
+                className={`group flex cursor-pointer items-center justify-between px-4 py-3 transition-colors hover:bg-gray-100 ${
+                  isActive ? "bg-red-50 border-l-2 border-[#cb3837]" : "border-l-2 border-transparent"
                 }`}
               >
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-white">{chat.title}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="truncate text-sm font-medium text-gray-900">{chat.title}</p>
+                  <p className="text-xs text-gray-400">
                     {new Date(chat.updatedAt).toLocaleDateString()}
                   </p>
                 </div>
                 <button
                   onClick={(e) => { e.stopPropagation(); onDeleteChat(chat.id); }}
-                  className="ml-2 hidden rounded p-1 text-gray-500 hover:bg-gray-700 hover:text-red-400 group-hover:block"
+                  className="ml-2 hidden rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-red-600 group-hover:block"
                 >
                   ✕
                 </button>

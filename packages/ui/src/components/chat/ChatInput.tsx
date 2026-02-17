@@ -145,10 +145,10 @@ export function ChatInput({ onSend, disabled, onCancel, producerDisconnected, ch
   const isSendDisabled = disabled || producerDisconnected;
 
   return (
-    <div className="border-t border-gray-700 p-3">
+    <div className="border-t border-gray-200 bg-white p-3">
       {producerDisconnected && !disabled && (
-        <div className="mb-2 rounded bg-yellow-900/50 px-3 py-2 text-xs text-yellow-300">
-          No local client connected. Run <code className="rounded bg-gray-800 px-1">claude-chat-client --server &lt;url&gt; --chat {chatId || "<id>"} --anthropic-key &lt;key&gt;</code> to start.
+        <div className="mb-2 rounded bg-amber-50 px-3 py-2 text-xs text-amber-700 border border-amber-200">
+          No local client connected. Run <code className="rounded bg-gray-100 px-1 text-gray-700">claude-chat-client --server &lt;url&gt; --chat {chatId || "<id>"} --anthropic-key &lt;key&gt;</code> to start.
         </div>
       )}
       {images.length > 0 && (
@@ -185,7 +185,7 @@ export function ChatInput({ onSend, disabled, onCancel, producerDisconnected, ch
         )}
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-gray-700 hover:text-white transition-colors"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
           aria-label="Upload images"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -195,7 +195,7 @@ export function ChatInput({ onSend, disabled, onCancel, producerDisconnected, ch
         {skills && skills.length > 0 && (
           <button
             onClick={() => { setShowSkills(!showSkills); setShowFileSearch(false); }}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-gray-700 hover:text-white transition-colors"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
             aria-label="Skills"
             title="Skills"
           >
@@ -222,7 +222,7 @@ export function ChatInput({ onSend, disabled, onCancel, producerDisconnected, ch
           placeholder={producerDisconnected ? "No client connected..." : "Type a message..."}
           rows={1}
           disabled={isSendDisabled}
-          className="flex-1 resize-none rounded-md bg-gray-700 px-4 py-2.5 text-sm text-white placeholder-gray-400 outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+          className="flex-1 resize-none rounded-md bg-gray-50 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 border border-gray-200 outline-none focus:ring-1 focus:ring-[#cb3837] focus:border-[#cb3837] disabled:opacity-50"
           aria-label="Type a message"
         />
         {disabled ? (
@@ -237,7 +237,7 @@ export function ChatInput({ onSend, disabled, onCancel, producerDisconnected, ch
           <button
             onClick={handleSend}
             disabled={isSendDisabled || (!text.trim() && images.length === 0)}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#cb3837] text-white hover:bg-[#b53130] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             aria-label="Send message"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

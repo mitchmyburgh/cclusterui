@@ -40,31 +40,31 @@ export function AppLayout() {
   }, []);
 
   return (
-    <div className="flex h-screen bg-gray-900 text-white">
+    <div className="flex h-screen bg-white text-gray-900">
       {/* Sidebar */}
-      <aside className="flex w-80 flex-col border-r border-gray-700">
-        <div className="flex items-center justify-between border-b border-gray-700 px-4 py-3">
-          <h1 className="text-lg font-semibold">Claude Chat</h1>
+      <aside className="flex w-80 flex-col border-r border-gray-200 bg-[#fafafa]">
+        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+          <h1 className="text-lg font-bold text-[#cb3837]">Claude Chat</h1>
           <div className="flex gap-2">
             <button
               onClick={() => setShowSettings(true)}
-              className="rounded-md bg-gray-700 px-3 py-1.5 text-sm text-gray-300 hover:bg-gray-600 transition-colors"
+              className="rounded-md bg-white px-3 py-1.5 text-sm text-gray-600 border border-gray-200 hover:bg-gray-50 hover:text-gray-900 transition-colors"
               title="Settings"
             >
               Settings
             </button>
             <button
               onClick={logout}
-              className="rounded-md bg-gray-700 px-3 py-1.5 text-sm text-gray-300 hover:bg-gray-600 transition-colors"
+              className="rounded-md bg-white px-3 py-1.5 text-sm text-gray-600 border border-gray-200 hover:bg-gray-50 hover:text-gray-900 transition-colors"
             >
               Logout
             </button>
           </div>
         </div>
         {user && user.username !== "system" && (
-          <div className="border-b border-gray-700 px-4 py-2">
-            <span className="text-xs text-gray-400">Signed in as </span>
-            <span className="text-xs text-white font-medium">{user.username}</span>
+          <div className="border-b border-gray-200 px-4 py-2">
+            <span className="text-xs text-gray-500">Signed in as </span>
+            <span className="text-xs text-gray-900 font-medium">{user.username}</span>
           </div>
         )}
         <ChatList
@@ -83,7 +83,7 @@ export function AppLayout() {
             <SettingsPanel onClose={() => setShowSettings(false)} />
           </div>
         ) : openPanels.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center text-gray-500">
+          <div className="flex flex-1 items-center justify-center text-gray-400">
             <p>Start a local client to create a chat</p>
           </div>
         ) : (

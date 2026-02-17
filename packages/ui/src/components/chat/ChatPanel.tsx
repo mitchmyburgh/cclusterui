@@ -160,17 +160,17 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
   const isStreaming = streamingId !== null;
 
   return (
-    <div className="flex flex-1 flex-col border-r border-gray-700 last:border-r-0">
+    <div className="flex flex-1 flex-col border-r border-gray-200 last:border-r-0">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-gray-700 px-4 py-2">
+      <div className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-2">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-medium truncate">{chat?.title || "Chat"}</h2>
+          <h2 className="text-sm font-semibold text-gray-900 truncate">{chat?.title || "Chat"}</h2>
           <span
             className={`inline-block h-2 w-2 rounded-full ${producerConnected ? "bg-green-500" : "bg-red-500"}`}
             title={producerConnected ? "Client connected" : "No client connected"}
           />
           {!connected && (
-            <span className="rounded bg-yellow-600 px-1.5 py-0.5 text-[10px]">Reconnecting...</span>
+            <span className="rounded bg-amber-100 text-amber-700 px-1.5 py-0.5 text-[10px]">Reconnecting...</span>
           )}
           <ModeSelector
             mode={mode}
@@ -178,25 +178,25 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
             disabled={!producerConnected}
           />
           {status !== "idle" && (
-            <span className="rounded bg-gray-700 px-1.5 py-0.5 text-[10px] text-gray-300">{status}</span>
+            <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-600">{status}</span>
           )}
         </div>
         <button
           onClick={onClose}
-          className="rounded p-1 text-gray-400 hover:bg-gray-700 hover:text-white transition-colors"
+          className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors"
         >
           ✕
         </button>
       </div>
 
       {/* Messages */}
-      <div ref={containerRef} className="flex-1 overflow-y-auto p-4">
+      <div ref={containerRef} className="flex-1 overflow-y-auto p-4 bg-white">
         {loading ? (
           <div className="flex items-center justify-center py-8">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-500 border-t-blue-500" />
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-200 border-t-[#cb3837]" />
           </div>
         ) : messages.length === 0 && !isStreaming ? (
-          <p className="py-8 text-center text-sm text-gray-500">Send a message to start the conversation</p>
+          <p className="py-8 text-center text-sm text-gray-400">Send a message to start the conversation</p>
         ) : (
           <>
             {messages.map((msg) => (
@@ -204,11 +204,11 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
             ))}
             {isStreaming && streamingText && (
               <div className="flex justify-start mb-3">
-                <div className="max-w-[80%] rounded-lg bg-gray-700 px-4 py-2 text-gray-100">
-                  <div className="prose prose-invert prose-sm max-w-none break-words">
+                <div className="max-w-[80%] rounded-lg bg-gray-50 px-4 py-2 text-gray-900 border border-gray-200">
+                  <div className="prose prose-sm max-w-none break-words">
                     <ReactMarkdown>{streamingText}</ReactMarkdown>
                   </div>
-                  <span className="inline-block w-1.5 h-4 ml-0.5 bg-gray-400 animate-pulse" />
+                  <span className="inline-block w-1.5 h-4 ml-0.5 bg-[#cb3837] animate-pulse" />
                 </div>
               </div>
             )}

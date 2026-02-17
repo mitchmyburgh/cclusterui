@@ -9,12 +9,12 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
   const { user, authType } = useAuth() as ReturnType<typeof useAuth> & { authType?: string };
 
   return (
-    <div className="flex h-full flex-col bg-gray-800">
-      <div className="flex items-center justify-between border-b border-gray-700 px-4 py-3">
-        <h2 className="text-lg font-semibold text-white">Settings</h2>
+    <div className="flex h-full flex-col bg-white">
+      <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+        <h2 className="text-lg font-semibold text-gray-900">Settings</h2>
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-white"
+          className="text-gray-400 hover:text-gray-900"
         >
           Close
         </button>
@@ -24,9 +24,9 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
         {/* Profile */}
         {user && (
           <div className="mb-6">
-            <h3 className="mb-2 text-lg font-semibold text-white">Profile</h3>
-            <p className="text-sm text-gray-400">
-              Signed in as <span className="text-white font-medium">{user.username}</span>
+            <h3 className="mb-2 text-lg font-semibold text-gray-900">Profile</h3>
+            <p className="text-sm text-gray-500">
+              Signed in as <span className="text-gray-900 font-medium">{user.username}</span>
             </p>
           </div>
         )}

@@ -13,8 +13,8 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       <div
         className={`max-w-[80%] rounded-lg px-4 py-2 ${
           isUser
-            ? "bg-blue-600 text-white"
-            : "bg-gray-700 text-gray-100"
+            ? "bg-[#cb3837] text-white"
+            : "bg-gray-50 text-gray-900 border border-gray-100"
         }`}
       >
         {message.content.map((block, i) => {
@@ -27,7 +27,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
               );
             }
             return (
-              <div key={i} className="prose prose-invert prose-sm max-w-none break-words">
+              <div key={i} className="prose prose-sm max-w-none break-words">
                 <ReactMarkdown>{block.text}</ReactMarkdown>
               </div>
             );

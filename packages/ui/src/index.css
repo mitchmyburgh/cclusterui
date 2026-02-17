@@ -1,13 +1,19 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+@theme {
+  --color-npm-red: #cb3837;
+  --color-npm-red-dark: #b53130;
+}
+
 body {
   margin: 0;
+  background: #ffffff;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Scrollbar styling for dark theme */
+/* Scrollbar styling for light theme */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -15,9 +21,9 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #4b5563;
+  background: #d1d5db;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
+  background: #9ca3af;
 }
