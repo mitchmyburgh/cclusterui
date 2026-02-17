@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import type { AppEnv } from "../types.js";
 import type {
   WSServerToViewerEvent,
+  AgentMode,
 } from "@mitchmyburgh/shared";
 import {
   validateProducerEvent,
@@ -10,6 +11,7 @@ import {
   sanitizeObject,
   ValidationError,
   MAX_WS_MESSAGE_SIZE,
+  VALID_AGENT_MODES,
 } from "@mitchmyburgh/shared";
 
 export function createWsRoutes(upgradeWebSocket: any) {
@@ -27,6 +29,8 @@ export function createWsRoutes(upgradeWebSocket: any) {
       const hostname = c.req.query("hostname") || "unknown";
       const cwd = c.req.query("cwd") || "unknown";
       const hitl = c.req.query("hitl") === "true";
+      const modeParam = c.req.query("mode");
+      const mode: AgentMode | undefined = VALID_AGENT_MODES.includes(modeParam as any) ? (modeParam as AgentMode) : undefined;
 
       return {
         async onOpen(_evt: any, wsCtx: any) {
@@ -37,7 +41,7 @@ export function createWsRoutes(upgradeWebSocket: any) {
             return;
           }
 
-          const registered = connectionManager.registerProducer(chatId, wsCtx, userId, { hostname, cwd, hitl });
+          const registered = connectionManager.registerProducer(chatId, wsCtx, userId, { hostname, cwd, hitl, mode });
           if (!registered) {
             wsCtx.send(JSON.stringify({ type: "error", error: "Producer already connected", code: "PRODUCER_EXISTS" }));
             wsCtx.close();
@@ -68,6 +72,18 @@ export function createWsRoutes(upgradeWebSocket: any) {
 
             // Relay tool approval requests to viewers (sanitized)
             if (event.type === "tool_approval_request") {
+              connectionManager.broadcastToViewers(chatId, event as unknown as WSServerToViewerEvent);
+              return;
+            }
+
+            // Handle skill registration from producer
+            if (event.type === "register_skills") {
+              connectionManager.setProducerSkills(chatId, event.skills);
+              return;
+            }
+
+            // Relay file search results to viewers
+            if (event.type === "file_search_results") {
               connectionManager.broadcastToViewers(chatId, event as unknown as WSServerToViewerEvent);
               return;
             }
@@ -209,6 +225,19 @@ export function createWsRoutes(upgradeWebSocket: any) {
 
           if (event.type === "cancel") {
             connectionManager.sendToProducer(chatId, { type: "cancel" });
+          }
+
+          if (event.type === "set_mode") {
+            connectionManager.setProducerMode(chatId, event.mode);
+            connectionManager.sendToProducer(chatId, { type: "set_mode", mode: event.mode });
+          }
+
+          if (event.type === "file_search") {
+            connectionManager.sendToProducer(chatId, { type: "file_search", query: event.query, searchType: event.searchType });
+          }
+
+          if (event.type === "invoke_skill") {
+            connectionManager.sendToProducer(chatId, { type: "invoke_skill", skillId: event.skillId });
           }
         } catch (err: any) {
           const errorMsg = err instanceof ValidationError

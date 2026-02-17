@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback, type KeyboardEvent, type ClipboardEvent, type ChangeEvent } from "react";
-import type { MessageContent } from "@mitchmyburgh/shared";
+import type { MessageContent, FileSearchResult, Skill } from "@mitchmyburgh/shared";
 import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_SIZE } from "@mitchmyburgh/shared";
+import { FileSearchPopup } from "./FileSearchPopup";
+import { SkillsPanel } from "./SkillsPanel";
 
 interface ChatInputProps {
   onSend: (content: MessageContent[]) => void;
@@ -8,6 +10,11 @@ interface ChatInputProps {
   onCancel?: () => void;
   producerDisconnected?: boolean;
   chatId?: string;
+  onFileSearch?: (query: string, searchType: "filename" | "content") => void;
+  fileSearchResults?: FileSearchResult[];
+  fileSearchLoading?: boolean;
+  skills?: Skill[];
+  onInvokeSkill?: (skillId: string) => void;
 }
 
 interface PendingImage {
@@ -17,9 +24,11 @@ interface PendingImage {
   name: string;
 }
 
-export function ChatInput({ onSend, disabled, onCancel, producerDisconnected, chatId }: ChatInputProps) {
+export function ChatInput({ onSend, disabled, onCancel, producerDisconnected, chatId, onFileSearch, fileSearchResults, fileSearchLoading, skills, onInvokeSkill }: ChatInputProps) {
   const [text, setText] = useState("");
   const [images, setImages] = useState<PendingImage[]>([]);
+  const [showFileSearch, setShowFileSearch] = useState(false);
+  const [showSkills, setShowSkills] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -55,6 +64,52 @@ export function ChatInput({ onSend, disabled, onCancel, producerDisconnected, ch
     Array.from(files).forEach(addImageFile);
     e.target.value = "";
   }, [addImageFile]);
+
+  const handleTextChange = useCallback((value: string) => {
+    setText(value);
+    // Detect @ trigger for file search
+    const cursorPos = textareaRef.current?.selectionStart ?? value.length;
+    const textBeforeCursor = value.substring(0, cursorPos);
+    const atMatch = textBeforeCursor.match(/(^|\s)@(\S*)$/);
+    if (atMatch && onFileSearch) {
+      setShowFileSearch(true);
+      setShowSkills(false);
+    } else if (!atMatch && showFileSearch) {
+      // Only close if there's no longer an @ trigger
+      if (!textBeforeCursor.match(/(^|\s)@\S*$/)) {
+        setShowFileSearch(false);
+      }
+    }
+    // Detect / at start for skills
+    if (value === "/" && skills && skills.length > 0) {
+      setShowSkills(true);
+      setShowFileSearch(false);
+    } else if (showSkills && !value.startsWith("/")) {
+      setShowSkills(false);
+    }
+  }, [onFileSearch, showFileSearch, showSkills, skills]);
+
+  const handleFileSearchSelect = useCallback((result: FileSearchResult) => {
+    const ref = result.lineNumber ? `@${result.path}#${result.lineNumber}` : `@${result.path}`;
+    // Replace the @query portion with the selected reference
+    const cursorPos = textareaRef.current?.selectionStart ?? text.length;
+    const textBeforeCursor = text.substring(0, cursorPos);
+    const atIdx = textBeforeCursor.lastIndexOf("@");
+    if (atIdx >= 0) {
+      const newText = text.substring(0, atIdx) + ref + " " + text.substring(cursorPos);
+      setText(newText);
+    } else {
+      setText(text + ref + " ");
+    }
+    setShowFileSearch(false);
+    textareaRef.current?.focus();
+  }, [text]);
+
+  const handleSkillInvoke = useCallback((skillId: string) => {
+    setShowSkills(false);
+    setText("");
+    onInvokeSkill?.(skillId);
+  }, [onInvokeSkill]);
 
   const handleSend = useCallback(() => {
     const content: MessageContent[] = [];
@@ -111,7 +166,23 @@ export function ChatInput({ onSend, disabled, onCancel, producerDisconnected, ch
           ))}
         </div>
       )}
-      <div className="flex items-end gap-2">
+      <div className="relative flex items-end gap-2">
+        {showFileSearch && onFileSearch && (
+          <FileSearchPopup
+            results={fileSearchResults ?? []}
+            loading={fileSearchLoading ?? false}
+            onSearch={onFileSearch}
+            onSelect={handleFileSearchSelect}
+            onClose={() => setShowFileSearch(false)}
+          />
+        )}
+        {showSkills && skills && skills.length > 0 && (
+          <SkillsPanel
+            skills={skills}
+            onInvoke={handleSkillInvoke}
+            onClose={() => setShowSkills(false)}
+          />
+        )}
         <button
           onClick={() => fileInputRef.current?.click()}
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-gray-700 hover:text-white transition-colors"
@@ -121,6 +192,18 @@ export function ChatInput({ onSend, disabled, onCancel, producerDisconnected, ch
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
           </svg>
         </button>
+        {skills && skills.length > 0 && (
+          <button
+            onClick={() => { setShowSkills(!showSkills); setShowFileSearch(false); }}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-gray-700 hover:text-white transition-colors"
+            aria-label="Skills"
+            title="Skills"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </button>
+        )}
         <input
           ref={fileInputRef}
           type="file"
@@ -132,7 +215,7 @@ export function ChatInput({ onSend, disabled, onCancel, producerDisconnected, ch
         <textarea
           ref={textareaRef}
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => handleTextChange(e.target.value)}
           onInput={handleInput}
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}

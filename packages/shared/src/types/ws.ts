@@ -1,5 +1,27 @@
 import type { Message, MessageContent } from "./message.js";
 
+// ─── File Search ───
+
+export interface FileSearchResult {
+  path: string;
+  type: "file" | "content_match";
+  lineNumber?: number;
+  lineContent?: string;
+  preview?: string;
+}
+
+// ─── Agent Mode ───
+
+export type AgentMode = "plan" | "human_confirm" | "accept_all";
+
+// ─── Skills ───
+
+export interface Skill {
+  id: string;
+  name: string;
+  description: string;
+}
+
 // ─── Tool Approval ───
 
 export interface ToolApprovalRequest {
@@ -20,7 +42,10 @@ export interface ToolApprovalResponse {
 export type WSViewerEvent =
   | { type: "send_message"; content: MessageContent[] }
   | { type: "cancel" }
-  | { type: "tool_approval_response"; response: ToolApprovalResponse };
+  | { type: "tool_approval_response"; response: ToolApprovalResponse }
+  | { type: "file_search"; query: string; searchType: "filename" | "content" }
+  | { type: "set_mode"; mode: AgentMode }
+  | { type: "invoke_skill"; skillId: string };
 
 /** @deprecated Use WSViewerEvent */
 export type WSClientEvent = WSViewerEvent;
@@ -44,9 +69,12 @@ export type WSServerToViewerEvent =
       cwd?: string;
       connectedAt?: string;
       hitl?: boolean;
+      mode?: AgentMode;
+      skills?: Skill[];
     }
   | { type: "user_message_stored"; message: Message }
-  | { type: "tool_approval_request"; request: ToolApprovalRequest };
+  | { type: "tool_approval_request"; request: ToolApprovalRequest }
+  | { type: "file_search_results"; results: FileSearchResult[]; query: string; searchType: "filename" | "content" };
 
 /** @deprecated Use WSServerToViewerEvent */
 export type WSServerEvent = WSServerToViewerEvent;
@@ -62,7 +90,10 @@ export type WSServerToProducerEvent =
       messageHistory: Message[];
     }
   | { type: "cancel" }
-  | { type: "tool_approval_response"; response: ToolApprovalResponse };
+  | { type: "tool_approval_response"; response: ToolApprovalResponse }
+  | { type: "file_search"; query: string; searchType: "filename" | "content" }
+  | { type: "set_mode"; mode: AgentMode }
+  | { type: "invoke_skill"; skillId: string };
 
 // ─── Producer (Local Client) → Server ───
 
@@ -81,4 +112,6 @@ export type WSProducerEvent =
     }
   | { type: "error"; error: string; code?: string }
   | { type: "heartbeat" }
-  | { type: "tool_approval_request"; request: ToolApprovalRequest };
+  | { type: "tool_approval_request"; request: ToolApprovalRequest }
+  | { type: "file_search_results"; results: FileSearchResult[]; query: string; searchType: "filename" | "content" }
+  | { type: "register_skills"; skills: Skill[] };

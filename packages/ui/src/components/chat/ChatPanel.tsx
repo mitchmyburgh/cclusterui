@@ -5,7 +5,8 @@ import { createApiClient } from "../../lib/api";
 import { ChatInput } from "./ChatInput";
 import { MessageBubble } from "./MessageBubble";
 import { ToolApprovalDialog } from "./ToolApprovalDialog";
-import type { Chat, Message, MessageContent, WSServerToViewerEvent, ToolApprovalRequest } from "@mitchmyburgh/shared";
+import type { Chat, Message, MessageContent, WSServerToViewerEvent, ToolApprovalRequest, AgentMode, FileSearchResult, Skill } from "@mitchmyburgh/shared";
+import { ModeSelector } from "./ModeSelector";
 
 interface ChatPanelProps {
   chatId: string;
@@ -22,7 +23,11 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
   const [loading, setLoading] = useState(true);
   const [producerConnected, setProducerConnected] = useState(false);
   const [hitlEnabled, setHitlEnabled] = useState(false);
+  const [mode, setMode] = useState<AgentMode>("accept_all");
   const [pendingApproval, setPendingApproval] = useState<ToolApprovalRequest | null>(null);
+  const [fileSearchResults, setFileSearchResults] = useState<FileSearchResult[]>([]);
+  const [fileSearchLoading, setFileSearchLoading] = useState(false);
+  const [skills, setSkills] = useState<Skill[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -83,6 +88,12 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
       case "producer_status":
         setProducerConnected(event.connected);
         if ("hitl" in event) setHitlEnabled(!!event.hitl);
+        if (event.mode) setMode(event.mode);
+        if (event.skills) setSkills(event.skills);
+        break;
+      case "file_search_results":
+        setFileSearchResults(event.results);
+        setFileSearchLoading(false);
         break;
       case "tool_approval_request":
         setPendingApproval(event.request);
@@ -109,6 +120,20 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
     setMessages((prev) => [...prev, userMsg]);
     send({ type: "send_message", content });
   }, [chatId, send]);
+
+  const handleFileSearch = useCallback((query: string, searchType: "filename" | "content") => {
+    setFileSearchLoading(true);
+    send({ type: "file_search", query, searchType });
+  }, [send]);
+
+  const handleInvokeSkill = useCallback((skillId: string) => {
+    send({ type: "invoke_skill", skillId });
+  }, [send]);
+
+  const handleModeChange = useCallback((newMode: AgentMode) => {
+    send({ type: "set_mode", mode: newMode });
+    setMode(newMode);
+  }, [send]);
 
   const handleCancel = useCallback(() => {
     send({ type: "cancel" });
@@ -147,11 +172,11 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
           {!connected && (
             <span className="rounded bg-yellow-600 px-1.5 py-0.5 text-[10px]">Reconnecting...</span>
           )}
-          {hitlEnabled && (
-            <span className="rounded bg-yellow-800 px-1.5 py-0.5 text-[10px] text-yellow-300" title="Human-in-the-loop enabled">
-              HITL
-            </span>
-          )}
+          <ModeSelector
+            mode={mode}
+            onChange={handleModeChange}
+            disabled={!producerConnected}
+          />
           {status !== "idle" && (
             <span className="rounded bg-gray-700 px-1.5 py-0.5 text-[10px] text-gray-300">{status}</span>
           )}
@@ -207,6 +232,11 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
         onCancel={isStreaming ? handleCancel : undefined}
         producerDisconnected={!producerConnected}
         chatId={chatId}
+        onFileSearch={handleFileSearch}
+        fileSearchResults={fileSearchResults}
+        fileSearchLoading={fileSearchLoading}
+        skills={skills}
+        onInvokeSkill={handleInvokeSkill}
       />
     </div>
   );

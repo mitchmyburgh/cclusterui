@@ -1,6 +1,6 @@
 import type { MessageContent, MessageMetadata } from "./types/message.js";
-import type { WSViewerEvent, WSProducerEvent } from "./types/ws.js";
-import { MAX_IMAGE_SIZE, ALLOWED_IMAGE_TYPES, MAX_MESSAGE_LENGTH } from "./constants.js";
+import type { WSViewerEvent, WSProducerEvent, FileSearchResult, Skill } from "./types/ws.js";
+import { MAX_IMAGE_SIZE, ALLOWED_IMAGE_TYPES, MAX_MESSAGE_LENGTH, MAX_FILE_SEARCH_QUERY_LENGTH, VALID_AGENT_MODES, MAX_FILE_SEARCH_RESULTS } from "./constants.js";
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -76,6 +76,33 @@ export function validateViewerEvent(data: unknown): WSViewerEvent {
         message: typeof response.message === "string" ? response.message : undefined,
       },
     };
+  }
+
+  if (type === "file_search") {
+    if (typeof data.query !== "string" || data.query.length === 0) {
+      throw new ValidationError("Missing or empty file search query");
+    }
+    if (data.query.length > MAX_FILE_SEARCH_QUERY_LENGTH) {
+      throw new ValidationError("File search query too long");
+    }
+    if (data.searchType !== "filename" && data.searchType !== "content") {
+      throw new ValidationError("Invalid searchType: must be 'filename' or 'content'");
+    }
+    return { type: "file_search", query: data.query as string, searchType: data.searchType as "filename" | "content" };
+  }
+
+  if (type === "set_mode") {
+    if (!VALID_AGENT_MODES.includes(data.mode as any)) {
+      throw new ValidationError(`Invalid mode: must be one of ${VALID_AGENT_MODES.join(", ")}`);
+    }
+    return { type: "set_mode", mode: data.mode as "plan" | "human_confirm" | "accept_all" };
+  }
+
+  if (type === "invoke_skill") {
+    if (typeof data.skillId !== "string" || data.skillId.length === 0) {
+      throw new ValidationError("Missing skillId");
+    }
+    return { type: "invoke_skill", skillId: data.skillId as string };
   }
 
   throw new ValidationError(`Unknown event type: ${String(type)}`);
@@ -154,6 +181,37 @@ export function validateProducerEvent(data: unknown): WSProducerEvent {
       },
       sessionId: typeof data.sessionId === "string" ? data.sessionId : undefined,
     };
+  }
+
+  if (type === "file_search_results") {
+    if (!Array.isArray(data.results)) throw new ValidationError("Missing results array");
+    if (typeof data.query !== "string") throw new ValidationError("Missing query");
+    if (data.searchType !== "filename" && data.searchType !== "content") {
+      throw new ValidationError("Invalid searchType");
+    }
+    const results: FileSearchResult[] = (data.results as unknown[]).slice(0, MAX_FILE_SEARCH_RESULTS).map((r) => {
+      if (!isObject(r) || typeof r.path !== "string") throw new ValidationError("Invalid file search result");
+      return {
+        path: r.path as string,
+        type: r.type === "content_match" ? "content_match" as const : "file" as const,
+        lineNumber: typeof r.lineNumber === "number" ? r.lineNumber : undefined,
+        lineContent: typeof r.lineContent === "string" ? r.lineContent : undefined,
+        preview: typeof r.preview === "string" ? r.preview : undefined,
+      };
+    });
+    return { type: "file_search_results", results, query: data.query as string, searchType: data.searchType as "filename" | "content" };
+  }
+
+  if (type === "register_skills") {
+    if (!Array.isArray(data.skills)) throw new ValidationError("Missing skills array");
+    const skills: Skill[] = (data.skills as unknown[]).map((s) => {
+      if (!isObject(s)) throw new ValidationError("Invalid skill");
+      if (typeof s.id !== "string") throw new ValidationError("Missing skill id");
+      if (typeof s.name !== "string") throw new ValidationError("Missing skill name");
+      if (typeof s.description !== "string") throw new ValidationError("Missing skill description");
+      return { id: s.id as string, name: s.name as string, description: s.description as string };
+    });
+    return { type: "register_skills", skills };
   }
 
   throw new ValidationError(`Unknown producer event type: ${String(type)}`);

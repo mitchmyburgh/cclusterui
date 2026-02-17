@@ -1,9 +1,11 @@
 import { query } from "@anthropic-ai/claude-agent-sdk";
+import { readFile } from "fs/promises";
 import type {
   MessageContent,
   WSProducerEvent,
   ToolApprovalRequest,
   ToolApprovalResponse,
+  AgentMode,
 } from "@mitchmyburgh/shared";
 
 export type ToolApprovalCallback = (
@@ -17,10 +19,68 @@ export interface RunClaudeOptions {
   cwd: string;
   abortSignal?: AbortSignal;
   humanInTheLoop?: boolean;
+  getMode?: () => AgentMode;
   onToolApproval?: ToolApprovalCallback;
 }
 
 const AUTO_ALLOW_TOOLS = ["Read", "Glob", "Grep"];
+const PLAN_MODE_READ_ONLY_TOOLS = ["Read", "Glob", "Grep", "WebSearch", "WebFetch"];
+
+// Match @filepath and @filepath#line-line patterns
+const FILE_REF_RE = /(?:^|\s)@([\w./_-]+(?:#\d+(?:-\d+)?)?)(?=\s|$)/g;
+
+interface FileReference {
+  raw: string;
+  path: string;
+  startLine?: number;
+  endLine?: number;
+}
+
+function parseFileReferences(text: string): FileReference[] {
+  const refs: FileReference[] = [];
+  let match;
+  while ((match = FILE_REF_RE.exec(text)) !== null) {
+    const raw = match[1];
+    const hashIdx = raw.indexOf("#");
+    if (hashIdx === -1) {
+      refs.push({ raw: `@${raw}`, path: raw });
+    } else {
+      const path = raw.substring(0, hashIdx);
+      const lineSpec = raw.substring(hashIdx + 1);
+      const dashIdx = lineSpec.indexOf("-");
+      if (dashIdx === -1) {
+        const line = parseInt(lineSpec, 10);
+        if (!isNaN(line)) refs.push({ raw: `@${raw}`, path, startLine: line, endLine: line });
+      } else {
+        const start = parseInt(lineSpec.substring(0, dashIdx), 10);
+        const end = parseInt(lineSpec.substring(dashIdx + 1), 10);
+        if (!isNaN(start) && !isNaN(end)) refs.push({ raw: `@${raw}`, path, startLine: start, endLine: end });
+      }
+    }
+  }
+  return refs;
+}
+
+async function resolveFileReferences(cwd: string, refs: FileReference[]): Promise<string> {
+  const blocks: string[] = [];
+  for (const ref of refs) {
+    try {
+      const fullPath = ref.path.startsWith("/") ? ref.path : `${cwd}/${ref.path}`;
+      const content = await readFile(fullPath, "utf-8");
+      let excerpt: string;
+      if (ref.startLine !== undefined && ref.endLine !== undefined) {
+        const lines = content.split("\n");
+        excerpt = lines.slice(ref.startLine - 1, ref.endLine).join("\n");
+      } else {
+        excerpt = content;
+      }
+      blocks.push(`<file_reference path="${ref.path}"${ref.startLine ? ` lines="${ref.startLine}-${ref.endLine}"` : ""}>\n${excerpt}\n</file_reference>`);
+    } catch {
+      // File not found, skip
+    }
+  }
+  return blocks.join("\n\n");
+}
 
 export async function* runClaude(
   options: RunClaudeOptions
@@ -32,8 +92,11 @@ export async function* runClaude(
     cwd,
     abortSignal,
     humanInTheLoop,
+    getMode,
     onToolApproval,
   } = options;
+
+  const mode = getMode ? getMode() : (humanInTheLoop ? "human_confirm" : "accept_all");
 
   const abortController = new AbortController();
 
@@ -52,7 +115,21 @@ export async function* runClaude(
   const textParts = content
     .filter((c) => c.type === "text" && c.text)
     .map((c) => c.text!);
-  const prompt = textParts.join("\n") || "Please analyze the attached image(s).";
+  let prompt = textParts.join("\n") || "Please analyze the attached image(s).";
+
+  // Parse and resolve @filepath references
+  const fileRefs = parseFileReferences(prompt);
+  if (fileRefs.length > 0) {
+    const refContent = await resolveFileReferences(cwd, fileRefs);
+    if (refContent) {
+      prompt = `${prompt}\n\n${refContent}`;
+    }
+  }
+
+  // In plan mode, prepend instructions to only plan, not execute
+  if (mode === "plan") {
+    prompt = `[PLAN MODE] You are in plan mode. Analyze and plan only — do NOT write, edit, or execute any code. Only use read-only tools (Read, Glob, Grep, WebSearch, WebFetch). Present a plan for the user to review.\n\n${prompt}`;
+  }
 
   // Track tools the user has "always allowed"
   const alwaysAllowed = new Set<string>();
@@ -85,7 +162,23 @@ export async function* runClaude(
     includePartialMessages: true,
   };
 
-  if (humanInTheLoop && onToolApproval) {
+  if (mode === "plan") {
+    // Plan mode: read-only tools only, deny write/exec tools
+    queryOptions.permissionMode = "default";
+    queryOptions.canUseTool = async (
+      toolName: string,
+      input: unknown,
+      _opts: unknown
+    ) => {
+      if (PLAN_MODE_READ_ONLY_TOOLS.includes(toolName)) {
+        return { behavior: "allow" as const, updatedInput: input };
+      }
+      return {
+        behavior: "deny" as const,
+        message: `Tool "${toolName}" is not available in plan mode. Only read-only tools are allowed.`,
+      };
+    };
+  } else if (mode === "human_confirm" && onToolApproval) {
     queryOptions.permissionMode = "default";
     queryOptions.canUseTool = async (
       toolName: string,
@@ -121,8 +214,9 @@ export async function* runClaude(
       };
     };
   } else {
+    // accept_all mode
     console.warn("WARNING: Running without human-in-the-loop. The agent can execute arbitrary commands.");
-    console.warn("Use --hitl flag for safer operation.");
+    console.warn("Use --mode human_confirm or --hitl flag for safer operation.");
     queryOptions.permissionMode = "bypassPermissions";
     queryOptions.allowDangerouslySkipPermissions = true;
   }

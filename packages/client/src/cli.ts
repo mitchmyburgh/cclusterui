@@ -15,7 +15,8 @@ program
   .option("--password <password>", "Login with password (prefer CC_PASSWORD env var)")
   .option("--anthropic-key <key>", "Anthropic API key (prefer ANTHROPIC_API_KEY env var)")
   .option("--cwd <path>", "Working directory for Claude operations", ".")
-  .option("--hitl", "Enable human-in-the-loop approval for write/exec tools")
+  .option("--hitl", "Enable human-in-the-loop approval (deprecated, use --mode human_confirm)")
+  .option("--mode <mode>", "Agent mode: plan, human_confirm, or accept_all", "accept_all")
   .option("--name <name>", "Set the chat title (only used when creating a new chat)")
   .parse(process.argv);
 
@@ -63,6 +64,18 @@ async function main() {
   }
 
   const cwd = resolve(opts.cwd);
+
+  // Resolve mode: --hitl is a deprecated alias for --mode human_confirm
+  let agentMode = opts.mode;
+  if (opts.hitl && agentMode === "accept_all") {
+    agentMode = "human_confirm";
+  }
+  const validModes = ["plan", "human_confirm", "accept_all"];
+  if (!validModes.includes(agentMode)) {
+    console.error(`Error: Invalid mode "${agentMode}". Must be one of: ${validModes.join(", ")}`);
+    process.exit(1);
+  }
+
   if (opts.chat) {
     console.log(`Starting local client for chat ${opts.chat}`);
   } else {
@@ -70,6 +83,7 @@ async function main() {
   }
   console.log(`Working directory: ${cwd}`);
   console.log(`Server: ${opts.server}`);
+  console.log(`Mode: ${agentMode}`);
 
   const client = new LocalClient({
     serverUrl: opts.server,
@@ -77,7 +91,8 @@ async function main() {
     apiKey,
     anthropicApiKey: anthropicKey,
     cwd,
-    humanInTheLoop: !!opts.hitl,
+    humanInTheLoop: agentMode === "human_confirm",
+    mode: agentMode as "plan" | "human_confirm" | "accept_all",
     chatName: opts.name,
   });
 

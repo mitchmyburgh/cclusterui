@@ -2,6 +2,8 @@ import type {
   WSServerToViewerEvent,
   WSServerToProducerEvent,
   WSProducerEvent,
+  AgentMode,
+  Skill,
 } from "@mitchmyburgh/shared";
 import { WS_HEARTBEAT_TIMEOUT } from "@mitchmyburgh/shared";
 
@@ -11,6 +13,8 @@ interface ProducerConnection {
   hostname: string;
   cwd: string;
   hitl: boolean;
+  mode: AgentMode;
+  skills: Skill[];
   connectedAt: string;
   lastHeartbeat: number;
 }
@@ -34,11 +38,13 @@ export class ConnectionManager {
     chatId: string,
     ws: any,
     userId: string,
-    info: { hostname: string; cwd: string; hitl?: boolean }
+    info: { hostname: string; cwd: string; hitl?: boolean; mode?: AgentMode }
   ): boolean {
     if (this.producers.has(chatId)) {
       return false; // Already has a producer
     }
+
+    const mode: AgentMode = info.mode || (info.hitl ? "human_confirm" : "accept_all");
 
     this.producers.set(chatId, {
       ws,
@@ -46,6 +52,8 @@ export class ConnectionManager {
       hostname: info.hostname,
       cwd: info.cwd,
       hitl: info.hitl || false,
+      mode,
+      skills: [],
       connectedAt: new Date().toISOString(),
       lastHeartbeat: Date.now(),
     });
@@ -57,6 +65,8 @@ export class ConnectionManager {
       cwd: info.cwd,
       connectedAt: this.producers.get(chatId)!.connectedAt,
       hitl: info.hitl || false,
+      mode,
+      skills: [],
     });
 
     return true;
@@ -85,6 +95,8 @@ export class ConnectionManager {
           cwd: producer.cwd,
           connectedAt: producer.connectedAt,
           hitl: producer.hitl,
+          mode: producer.mode,
+          skills: producer.skills,
         }
       : { type: "producer_status", connected: false };
 
@@ -127,6 +139,8 @@ export class ConnectionManager {
     cwd?: string;
     connectedAt?: string;
     hitl?: boolean;
+    mode?: AgentMode;
+    skills?: Skill[];
   } {
     const producer = this.producers.get(chatId);
     if (!producer) return { connected: false };
@@ -136,7 +150,41 @@ export class ConnectionManager {
       cwd: producer.cwd,
       connectedAt: producer.connectedAt,
       hitl: producer.hitl,
+      mode: producer.mode,
+      skills: producer.skills,
     };
+  }
+
+  setProducerMode(chatId: string, mode: AgentMode): void {
+    const producer = this.producers.get(chatId);
+    if (!producer) return;
+    producer.mode = mode;
+    this.broadcastToViewers(chatId, {
+      type: "producer_status",
+      connected: true,
+      hostname: producer.hostname,
+      cwd: producer.cwd,
+      connectedAt: producer.connectedAt,
+      hitl: producer.hitl,
+      mode: producer.mode,
+      skills: producer.skills,
+    });
+  }
+
+  setProducerSkills(chatId: string, skills: Skill[]): void {
+    const producer = this.producers.get(chatId);
+    if (!producer) return;
+    producer.skills = skills;
+    this.broadcastToViewers(chatId, {
+      type: "producer_status",
+      connected: true,
+      hostname: producer.hostname,
+      cwd: producer.cwd,
+      connectedAt: producer.connectedAt,
+      hitl: producer.hitl,
+      mode: producer.mode,
+      skills: producer.skills,
+    });
   }
 
   handleProducerHeartbeat(chatId: string): void {

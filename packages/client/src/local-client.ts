@@ -5,9 +5,12 @@ import type {
   WSProducerEvent,
   ToolApprovalRequest,
   ToolApprovalResponse,
+  AgentMode,
 } from "@mitchmyburgh/shared";
 import { WS_HEARTBEAT_INTERVAL } from "@mitchmyburgh/shared";
 import { runClaude } from "./claude-runner.js";
+import { searchFiles } from "./file-search.js";
+import { getSkillList, getSkillById } from "./skills.js";
 
 export interface LocalClientOptions {
   serverUrl: string;
@@ -16,6 +19,7 @@ export interface LocalClientOptions {
   anthropicApiKey?: string;
   cwd: string;
   humanInTheLoop?: boolean;
+  mode?: AgentMode;
   chatName?: string;
 }
 
@@ -27,6 +31,7 @@ export class LocalClient {
   private shouldRun = true;
   private options: LocalClientOptions;
   private _chatId: string | undefined;
+  private mode: AgentMode;
   private pendingApprovals = new Map<
     string,
     { resolve: (response: ToolApprovalResponse) => void }
@@ -35,6 +40,7 @@ export class LocalClient {
   constructor(options: LocalClientOptions) {
     this.options = options;
     this._chatId = options.chatId;
+    this.mode = options.mode || (options.humanInTheLoop ? "human_confirm" : "accept_all");
   }
 
   get chatId(): string | undefined {
@@ -78,17 +84,21 @@ export class LocalClient {
       const wsUrl = serverUrl.replace(/^http/, "ws");
       const host = hostname();
       const hitl = this.options.humanInTheLoop ? "&hitl=true" : "";
-      const url = `${wsUrl}/api/chats/${chatId}/ws?token=${encodeURIComponent(apiKey)}&role=producer&hostname=${encodeURIComponent(host)}&cwd=${encodeURIComponent(cwd)}${hitl}`;
+      const modeParam = `&mode=${encodeURIComponent(this.mode)}`;
+      const url = `${wsUrl}/api/chats/${chatId}/ws?token=${encodeURIComponent(apiKey)}&role=producer&hostname=${encodeURIComponent(host)}&cwd=${encodeURIComponent(cwd)}${hitl}${modeParam}`;
 
       const ws = new WebSocket(url);
       this.ws = ws;
 
       ws.on("open", () => {
         console.log(`Connected to server as producer for chat ${chatId}`);
-        if (this.options.humanInTheLoop) {
+        console.log(`Agent mode: ${this.mode}`);
+        if (this.mode === "human_confirm") {
           console.log("Human-in-the-loop: enabled (write/exec tools require approval)");
         }
         this.startHeartbeat();
+        // Register available skills
+        this.send({ type: "register_skills", skills: getSkillList() });
         resolve();
       });
 
@@ -152,7 +162,9 @@ export class LocalClient {
 
         this.abortController = new AbortController();
 
-        console.log(`Processing message for chat ${event.chatId}`);
+        console.log(`Processing message for chat ${event.chatId} (mode: ${this.mode})`);
+
+        const needsApproval = this.mode === "human_confirm";
 
         try {
           for await (const producerEvent of runClaude({
@@ -161,8 +173,9 @@ export class LocalClient {
             anthropicApiKey: this.options.anthropicApiKey,
             cwd: this.options.cwd,
             abortSignal: this.abortController.signal,
-            humanInTheLoop: this.options.humanInTheLoop,
-            onToolApproval: this.options.humanInTheLoop
+            humanInTheLoop: needsApproval,
+            getMode: () => this.mode,
+            onToolApproval: needsApproval
               ? (request) => this.requestToolApproval(request)
               : undefined,
           })) {
@@ -174,6 +187,72 @@ export class LocalClient {
               type: "error",
               error: err.message || "Unknown error",
             });
+          }
+        }
+
+        this.abortController = null;
+        break;
+      }
+
+      case "set_mode": {
+        this.mode = event.mode;
+        console.log(`Mode changed to: ${this.mode}`);
+        break;
+      }
+
+      case "file_search": {
+        try {
+          const results = await searchFiles(
+            this.options.cwd,
+            event.query,
+            event.searchType
+          );
+          this.send({
+            type: "file_search_results",
+            results,
+            query: event.query,
+            searchType: event.searchType,
+          });
+        } catch (err: any) {
+          console.error("File search error:", err.message);
+        }
+        break;
+      }
+
+      case "invoke_skill": {
+        const skill = getSkillById(event.skillId);
+        if (!skill) {
+          this.send({ type: "error", error: `Unknown skill: ${event.skillId}` });
+          break;
+        }
+
+        // Cancel any running session
+        if (this.abortController) {
+          this.abortController.abort();
+        }
+        this.abortController = new AbortController();
+
+        console.log(`Invoking skill: ${skill.name}`);
+
+        const needsApproval = this.mode === "human_confirm";
+        try {
+          for await (const producerEvent of runClaude({
+            content: [{ type: "text", text: skill.prompt }],
+            sessionId: null,
+            anthropicApiKey: this.options.anthropicApiKey,
+            cwd: this.options.cwd,
+            abortSignal: this.abortController.signal,
+            humanInTheLoop: needsApproval,
+            getMode: () => this.mode,
+            onToolApproval: needsApproval
+              ? (request) => this.requestToolApproval(request)
+              : undefined,
+          })) {
+            this.send(producerEvent);
+          }
+        } catch (err: any) {
+          if (err.name !== "AbortError") {
+            this.send({ type: "error", error: err.message || "Skill execution failed" });
           }
         }
 
