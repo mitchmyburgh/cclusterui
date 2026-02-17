@@ -1,4 +1,10 @@
-import { useState, useEffect, useRef, useCallback, type KeyboardEvent } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  type KeyboardEvent,
+} from "react";
 import type { FileSearchResult } from "@mitchmyburgh/shared";
 
 interface FileSearchPopupProps {
@@ -9,9 +15,17 @@ interface FileSearchPopupProps {
   onClose: () => void;
 }
 
-export function FileSearchPopup({ results, loading, onSearch, onSelect, onClose }: FileSearchPopupProps) {
+export function FileSearchPopup({
+  results,
+  loading,
+  onSearch,
+  onSelect,
+  onClose,
+}: FileSearchPopupProps) {
   const [query, setQuery] = useState("");
-  const [searchType, setSearchType] = useState<"filename" | "content">("filename");
+  const [searchType, setSearchType] = useState<"filename" | "content">(
+    "filename",
+  );
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -24,41 +38,53 @@ export function FileSearchPopup({ results, loading, onSearch, onSelect, onClose 
     setSelectedIndex(0);
   }, [results]);
 
-  const doSearch = useCallback((q: string, type: "filename" | "content") => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      if (q.trim()) onSearch(q.trim(), type);
-    }, 300);
-  }, [onSearch]);
+  const doSearch = useCallback(
+    (q: string, type: "filename" | "content") => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        if (q.trim()) onSearch(q.trim(), type);
+      }, 300);
+    },
+    [onSearch],
+  );
 
-  const handleQueryChange = useCallback((value: string) => {
-    setQuery(value);
-    doSearch(value, searchType);
-  }, [searchType, doSearch]);
+  const handleQueryChange = useCallback(
+    (value: string) => {
+      setQuery(value);
+      doSearch(value, searchType);
+    },
+    [searchType, doSearch],
+  );
 
-  const handleTabSwitch = useCallback((type: "filename" | "content") => {
-    setSearchType(type);
-    if (query.trim()) doSearch(query, type);
-  }, [query, doSearch]);
+  const handleTabSwitch = useCallback(
+    (type: "filename" | "content") => {
+      setSearchType(type);
+      if (query.trim()) doSearch(query, type);
+    },
+    [query, doSearch],
+  );
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === "Escape") {
-      e.preventDefault();
-      onClose();
-    } else if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setSelectedIndex((prev) => Math.min(prev + 1, results.length - 1));
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setSelectedIndex((prev) => Math.max(prev - 1, 0));
-    } else if (e.key === "Enter" && results.length > 0) {
-      e.preventDefault();
-      onSelect(results[selectedIndex]);
-    } else if (e.key === "Tab") {
-      e.preventDefault();
-      handleTabSwitch(searchType === "filename" ? "content" : "filename");
-    }
-  }, [results, selectedIndex, onSelect, onClose, searchType, handleTabSwitch]);
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedIndex((prev) => Math.min(prev + 1, results.length - 1));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedIndex((prev) => Math.max(prev - 1, 0));
+      } else if (e.key === "Enter" && results.length > 0) {
+        e.preventDefault();
+        onSelect(results[selectedIndex]);
+      } else if (e.key === "Tab") {
+        e.preventDefault();
+        handleTabSwitch(searchType === "filename" ? "content" : "filename");
+      }
+    },
+    [results, selectedIndex, onSelect, onClose, searchType, handleTabSwitch],
+  );
 
   return (
     <div className="absolute bottom-full left-0 right-0 mb-1 max-h-64 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
@@ -67,7 +93,9 @@ export function FileSearchPopup({ results, loading, onSearch, onSelect, onClose 
         <button
           onClick={() => handleTabSwitch("filename")}
           className={`flex-1 px-3 py-1.5 text-xs font-medium ${
-            searchType === "filename" ? "bg-[#cb3837] text-white" : "text-gray-500 hover:text-gray-700"
+            searchType === "filename"
+              ? "bg-[#cb3837] text-white"
+              : "text-gray-500 hover:text-gray-700"
           }`}
         >
           Files
@@ -75,7 +103,9 @@ export function FileSearchPopup({ results, loading, onSearch, onSelect, onClose 
         <button
           onClick={() => handleTabSwitch("content")}
           className={`flex-1 px-3 py-1.5 text-xs font-medium ${
-            searchType === "content" ? "bg-[#cb3837] text-white" : "text-gray-500 hover:text-gray-700"
+            searchType === "content"
+              ? "bg-[#cb3837] text-white"
+              : "text-gray-500 hover:text-gray-700"
           }`}
         >
           Content
@@ -90,7 +120,9 @@ export function FileSearchPopup({ results, loading, onSearch, onSelect, onClose 
           value={query}
           onChange={(e) => handleQueryChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={searchType === "filename" ? "Search files..." : "Search content..."}
+          placeholder={
+            searchType === "filename" ? "Search files..." : "Search content..."
+          }
           className="w-full rounded bg-gray-50 px-3 py-1.5 text-sm text-gray-900 placeholder-gray-400 border border-gray-200 outline-none focus:ring-1 focus:ring-[#cb3837]"
         />
       </div>
@@ -111,7 +143,9 @@ export function FileSearchPopup({ results, loading, onSearch, onSelect, onClose 
               key={`${result.path}-${result.lineNumber ?? idx}`}
               onClick={() => onSelect(result)}
               className={`w-full px-3 py-1.5 text-left text-xs ${
-                idx === selectedIndex ? "bg-[#cb3837] text-white" : "text-gray-700 hover:bg-gray-50"
+                idx === selectedIndex
+                  ? "bg-[#cb3837] text-white"
+                  : "text-gray-700 hover:bg-gray-50"
               }`}
             >
               <div className="truncate font-mono">{result.path}</div>

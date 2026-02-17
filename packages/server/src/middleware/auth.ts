@@ -27,7 +27,7 @@ export function authMiddleware(config: ServerConfig, repo: ChatRepository) {
     if (!token) {
       return c.json(
         { error: "Unauthorized", code: "MISSING_TOKEN", status: 401 },
-        401
+        401,
       );
     }
 
@@ -71,10 +71,14 @@ export function authMiddleware(config: ServerConfig, repo: ChatRepository) {
 
     // 3. Fall back to legacy API_KEYS env (timing-safe comparison - M5)
     const tokenBuf = Buffer.from(token);
-    if (config.apiKeys.some((key) => {
-      const keyBuf = Buffer.from(key);
-      return tokenBuf.length === keyBuf.length && timingSafeEqual(tokenBuf, keyBuf);
-    })) {
+    if (
+      config.apiKeys.some((key) => {
+        const keyBuf = Buffer.from(key);
+        return (
+          tokenBuf.length === keyBuf.length && timingSafeEqual(tokenBuf, keyBuf)
+        );
+      })
+    ) {
       c.set("apiKey", token);
       c.set("userId", "system");
       c.set("username", "system");
@@ -85,7 +89,7 @@ export function authMiddleware(config: ServerConfig, repo: ChatRepository) {
 
     return c.json(
       { error: "Unauthorized", code: "INVALID_TOKEN", status: 401 },
-      401
+      401,
     );
   });
 }

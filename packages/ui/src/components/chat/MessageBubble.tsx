@@ -21,7 +21,10 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           if (block.type === "text" && block.text) {
             if (isUser) {
               return (
-                <div key={i} className="whitespace-pre-wrap break-words text-sm">
+                <div
+                  key={i}
+                  className="whitespace-pre-wrap break-words text-sm"
+                >
                   {block.text}
                 </div>
               );
@@ -47,8 +50,12 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         {message.metadata && (
           <div className="mt-1 text-[10px] text-gray-400">
             {message.metadata.model && <span>{message.metadata.model}</span>}
-            {message.metadata.durationMs && <span> · {(message.metadata.durationMs / 1000).toFixed(1)}s</span>}
-            {message.metadata.totalCostUsd != null && <span> · ${message.metadata.totalCostUsd.toFixed(4)}</span>}
+            {message.metadata.durationMs && (
+              <span> · {(message.metadata.durationMs / 1000).toFixed(1)}s</span>
+            )}
+            {message.metadata.totalCostUsd != null && (
+              <span> · ${message.metadata.totalCostUsd.toFixed(4)}</span>
+            )}
           </div>
         )}
       </div>

@@ -28,7 +28,7 @@ export function createApp(context: AppContext, upgradeWebSocket?: any) {
       ...(process.env.NODE_ENV === "production"
         ? { strictTransportSecurity: "max-age=63072000; includeSubDomains" }
         : {}),
-    })
+    }),
   );
 
   // Configurable CORS (M2)
@@ -42,7 +42,7 @@ export function createApp(context: AppContext, upgradeWebSocket?: any) {
       origin: corsOrigins,
       allowHeaders: ["Content-Type", "Authorization"],
       allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-    })
+    }),
   );
 
   // Health check (no auth)
@@ -82,7 +82,7 @@ export function createApp(context: AppContext, upgradeWebSocket?: any) {
     console.error("Server error:", err);
     return c.json(
       { error: "Internal server error", code: "INTERNAL_ERROR", status: 500 },
-      500
+      500,
     );
   });
 

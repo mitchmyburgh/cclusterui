@@ -19,7 +19,7 @@ interface Props {
 export function MessageList({ messages, streamingText, status }: Props) {
   const renderedStream = useMemo(
     () => (streamingText ? renderMd(streamingText) : ""),
-    [streamingText]
+    [streamingText],
   );
 
   return (
@@ -38,7 +38,7 @@ export function MessageList({ messages, streamingText, status }: Props) {
               <Text key={i} dimColor>
                 [image]
               </Text>
-            )
+            ),
           )}
           {msg.metadata && (
             <Text dimColor>
@@ -65,9 +65,7 @@ export function MessageList({ messages, streamingText, status }: Props) {
         </Box>
       )}
 
-      {status && status !== "idle" && (
-        <Text dimColor>[{status}]</Text>
-      )}
+      {status && status !== "idle" && <Text dimColor>[{status}]</Text>}
     </Box>
   );
 }

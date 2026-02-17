@@ -14,11 +14,11 @@
 
 ## Critical Findings
 
-| # | Finding | Package(s) | File:Line |
-|---|---------|------------|-----------|
-| C1 | **No runtime validation** -- shared types are compile-time only; all WebSocket/API data cast without validation | shared+server+client+ui | `shared/src/*`, `server/ws.ts:46,120`, `ui/useWebSocket.ts:33` |
-| C2 | **JWT secret allows empty string** -- server starts with no functional auth when both `JWT_SECRET` and `API_KEYS` are unset | server | `config.ts:20-23` |
-| C3 | **`setChatSession` has no `userId` check** -- any authenticated user can bind their session to any chat | db (all 4 drivers) | `sqlite-repo.ts:194-204`, `pg-repo.ts:198-208` |
+| #   | Finding                                                                                                                     | Package(s)              | File:Line                                                      |
+| --- | --------------------------------------------------------------------------------------------------------------------------- | ----------------------- | -------------------------------------------------------------- |
+| C1  | **No runtime validation** -- shared types are compile-time only; all WebSocket/API data cast without validation             | shared+server+client+ui | `shared/src/*`, `server/ws.ts:46,120`, `ui/useWebSocket.ts:33` |
+| C2  | **JWT secret allows empty string** -- server starts with no functional auth when both `JWT_SECRET` and `API_KEYS` are unset | server                  | `config.ts:20-23`                                              |
+| C3  | **`setChatSession` has no `userId` check** -- any authenticated user can bind their session to any chat                     | db (all 4 drivers)      | `sqlite-repo.ts:194-204`, `pg-repo.ts:198-208`                 |
 
 ### C1: No Runtime Validation
 
@@ -27,7 +27,7 @@ The shared package exports only TypeScript interfaces and constants with zero ru
 ```typescript
 // server/src/routes/ws.ts:46
 const event: WSProducerEvent = JSON.parse(
-  typeof evt.data === "string" ? evt.data : evt.data.toString()
+  typeof evt.data === "string" ? evt.data : evt.data.toString(),
 );
 ```
 
@@ -64,19 +64,19 @@ async setChatSession(chatId: string, sessionId: string): Promise<void> {
 
 ## High Findings
 
-| # | Finding | Package(s) | File:Line |
-|---|---------|------------|-----------|
-| H1 | **Default `bypassPermissions=true`** -- Claude Agent SDK runs unrestricted without `--hitl` flag; enables arbitrary code execution from prompt injection | client | `claude-runner.ts:117-120` |
-| H2 | **No rate limiting on auth endpoints** -- unlimited brute-force attacks on login/register | server | `routes/auth.ts:9,77` |
-| H3 | **Auth tokens leaked in WebSocket `?token=` query parameter** -- visible in server logs, proxy logs, Referer headers, browser history | server+client+tui+ui | `middleware/auth.ts:23-25`, `local-client.ts:81`, `useWebSocket.ts:12` |
-| H4 | **`toolInput: unknown` relayed to viewers without sanitization** -- enables prototype pollution and potential XSS | shared+server | `ws.ts:8,34`, `server/ws.ts:56-58` |
-| H5 | **Unrestricted `imageData` base64** -- `MAX_IMAGE_SIZE`/`ALLOWED_IMAGE_TYPES` defined but never enforced server-side | shared+server | `message.ts:3-8` |
-| H6 | **CLI credentials visible in process list** -- `--api-key`, `--password`, `--anthropic-key` exposed via `ps aux` | client | `cli.ts:13-16` |
-| H7 | **Docker container runs as root** -- no USER directive in runtime stage | root | `Dockerfile:29-49` |
-| H8 | **`getMessage(id)` IDOR** -- retrieves any message without ownership check | db (all 4 drivers) | `repository.ts:33`, `sqlite-repo.ts:277-297` |
-| H9 | **No SSL/TLS enforcement on database connections** -- credentials/data transmitted in cleartext | db | `pg-repo.ts:27`, `mysql-repo.ts:25`, `mongo-repo.ts:63` |
-| H10 | **Auth token stored in `localStorage` without protection** -- vulnerable to XSS-based token theft | ui | `storage.ts:15-16` |
-| H11 | **PWA service worker caches authenticated API responses** -- cached data persists after logout | ui | `vite.config.ts:29-37` |
+| #   | Finding                                                                                                                                                  | Package(s)           | File:Line                                                              |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | ---------------------------------------------------------------------- |
+| H1  | **Default `bypassPermissions=true`** -- Claude Agent SDK runs unrestricted without `--hitl` flag; enables arbitrary code execution from prompt injection | client               | `claude-runner.ts:117-120`                                             |
+| H2  | **No rate limiting on auth endpoints** -- unlimited brute-force attacks on login/register                                                                | server               | `routes/auth.ts:9,77`                                                  |
+| H3  | **Auth tokens leaked in WebSocket `?token=` query parameter** -- visible in server logs, proxy logs, Referer headers, browser history                    | server+client+tui+ui | `middleware/auth.ts:23-25`, `local-client.ts:81`, `useWebSocket.ts:12` |
+| H4  | **`toolInput: unknown` relayed to viewers without sanitization** -- enables prototype pollution and potential XSS                                        | shared+server        | `ws.ts:8,34`, `server/ws.ts:56-58`                                     |
+| H5  | **Unrestricted `imageData` base64** -- `MAX_IMAGE_SIZE`/`ALLOWED_IMAGE_TYPES` defined but never enforced server-side                                     | shared+server        | `message.ts:3-8`                                                       |
+| H6  | **CLI credentials visible in process list** -- `--api-key`, `--password`, `--anthropic-key` exposed via `ps aux`                                         | client               | `cli.ts:13-16`                                                         |
+| H7  | **Docker container runs as root** -- no USER directive in runtime stage                                                                                  | root                 | `Dockerfile:29-49`                                                     |
+| H8  | **`getMessage(id)` IDOR** -- retrieves any message without ownership check                                                                               | db (all 4 drivers)   | `repository.ts:33`, `sqlite-repo.ts:277-297`                           |
+| H9  | **No SSL/TLS enforcement on database connections** -- credentials/data transmitted in cleartext                                                          | db                   | `pg-repo.ts:27`, `mysql-repo.ts:25`, `mongo-repo.ts:63`                |
+| H10 | **Auth token stored in `localStorage` without protection** -- vulnerable to XSS-based token theft                                                        | ui                   | `storage.ts:15-16`                                                     |
+| H11 | **PWA service worker caches authenticated API responses** -- cached data persists after logout                                                           | ui                   | `vite.config.ts:29-37`                                                 |
 
 ### H1: Unrestricted Agent Permissions
 
@@ -113,7 +113,10 @@ const wsUrl = `${protocol}//${window.location.host}/api/chats/${chatId}/ws?token
 ```typescript
 // server/src/routes/ws.ts:56-58
 if (event.type === "tool_approval_request") {
-  connectionManager.broadcastToViewers(chatId, event as unknown as WSServerToViewerEvent);
+  connectionManager.broadcastToViewers(
+    chatId,
+    event as unknown as WSServerToViewerEvent,
+  );
   return;
 }
 ```
@@ -140,6 +143,7 @@ if (event.type === "tool_approval_request") {
 ### H7: Docker Runs as Root
 
 **Fix:** Add non-root user to Dockerfile runtime stage:
+
 ```dockerfile
 RUN addgroup --system --gid 1001 appgroup && \
     adduser --system --uid 1001 --ingroup appgroup appuser
@@ -179,11 +183,13 @@ Accessible to any JS on the same origin. One XSS vulnerability = full token thef
 
 ```typescript
 // ui/vite.config.ts:29-37
-runtimeCaching: [{
-  urlPattern: /^\/api\/.*/i,
-  handler: "NetworkFirst",
-  options: { cacheName: "api-cache", expiration: { maxAgeSeconds: 3600 } },
-}]
+runtimeCaching: [
+  {
+    urlPattern: /^\/api\/.*/i,
+    handler: "NetworkFirst",
+    options: { cacheName: "api-cache", expiration: { maxAgeSeconds: 3600 } },
+  },
+];
 ```
 
 **Fix:** Exclude sensitive endpoints from caching. Clear `api-cache` on logout.
@@ -212,52 +218,52 @@ runtimeCaching: [{
 
 ## Medium Findings
 
-| # | Finding | Package | File:Line |
-|---|---------|---------|-----------|
-| M1 | Error handler leaks `err.message` to clients | server | `app.ts:61-67` |
-| M2 | CORS hardcoded to `localhost:5173` | server | `app.ts:19-26` |
-| M3 | JWT tokens expire in 30 days, no revocation | server | `auth.ts:60,117` |
-| M4 | No JWT invalidation on password change | server | `middleware/auth.ts:35-51` |
-| M5 | Timing-unsafe API key comparison via `Array.includes()` | server | `middleware/auth.ts:73` |
-| M6 | Missing security headers (CSP, HSTS, X-Frame-Options) | server | `app.ts` (global) |
-| M7 | No input validation on chat create/update bodies | server | `routes/chats.ts:17-22,35-42` |
-| M8 | No validation on WebSocket message content size | server | `routes/ws.ts:124-133` |
-| M9 | `CreateChatInput.userId` allows user ID override | shared | `types/chat.ts:10-13` |
-| M10 | Mass assignment via unfiltered `UpdateChatInput` body | shared+server | `chat.ts:15-17`, `chats.ts:38` |
-| M11 | Entire `process.env` forwarded to Claude Agent SDK | client | `claude-runner.ts:74-77` |
-| M12 | Login request sent over potentially insecure HTTP | client | `cli.ts:30-34` |
-| M13 | Stale `.npmrc` scope mapping -- supply chain risk | root | `.npmrc:1` |
-| M14 | Unbounded pagination `limit` (DoS via `?limit=999999999`) | server | `routes/chats.ts:10`, `messages.ts:18` |
-| M15 | No HEALTHCHECK in Dockerfile | root | `Dockerfile:29-49` |
-| M16 | CI/CD uses mutable action version tags (not SHA-pinned) | root | `ci.yml:13-62` |
-| M17 | `getMessages(chatId)` no `userId` check | db | `repository.ts:29-32` |
-| M18 | `addMessage(chatId)` no `userId` check -- enables message injection | db | `repository.ts:23-28` |
-| M19 | Unsafe `JSON.parse()` without try/catch on db content | db | `sqlite-repo.ts:266-268` |
-| M20 | Raw API key displayed in DOM with no auto-dismiss timeout | ui | `ApiKeyManager.tsx:38,65` |
-| M21 | Unvalidated `chatId` used in URL path construction | ui | `useWebSocket.ts:12`, `api.ts:41` |
-| M22 | No CSP meta tag or headers defined in UI | ui | `index.html` |
+| #   | Finding                                                             | Package       | File:Line                              |
+| --- | ------------------------------------------------------------------- | ------------- | -------------------------------------- |
+| M1  | Error handler leaks `err.message` to clients                        | server        | `app.ts:61-67`                         |
+| M2  | CORS hardcoded to `localhost:5173`                                  | server        | `app.ts:19-26`                         |
+| M3  | JWT tokens expire in 30 days, no revocation                         | server        | `auth.ts:60,117`                       |
+| M4  | No JWT invalidation on password change                              | server        | `middleware/auth.ts:35-51`             |
+| M5  | Timing-unsafe API key comparison via `Array.includes()`             | server        | `middleware/auth.ts:73`                |
+| M6  | Missing security headers (CSP, HSTS, X-Frame-Options)               | server        | `app.ts` (global)                      |
+| M7  | No input validation on chat create/update bodies                    | server        | `routes/chats.ts:17-22,35-42`          |
+| M8  | No validation on WebSocket message content size                     | server        | `routes/ws.ts:124-133`                 |
+| M9  | `CreateChatInput.userId` allows user ID override                    | shared        | `types/chat.ts:10-13`                  |
+| M10 | Mass assignment via unfiltered `UpdateChatInput` body               | shared+server | `chat.ts:15-17`, `chats.ts:38`         |
+| M11 | Entire `process.env` forwarded to Claude Agent SDK                  | client        | `claude-runner.ts:74-77`               |
+| M12 | Login request sent over potentially insecure HTTP                   | client        | `cli.ts:30-34`                         |
+| M13 | Stale `.npmrc` scope mapping -- supply chain risk                   | root          | `.npmrc:1`                             |
+| M14 | Unbounded pagination `limit` (DoS via `?limit=999999999`)           | server        | `routes/chats.ts:10`, `messages.ts:18` |
+| M15 | No HEALTHCHECK in Dockerfile                                        | root          | `Dockerfile:29-49`                     |
+| M16 | CI/CD uses mutable action version tags (not SHA-pinned)             | root          | `ci.yml:13-62`                         |
+| M17 | `getMessages(chatId)` no `userId` check                             | db            | `repository.ts:29-32`                  |
+| M18 | `addMessage(chatId)` no `userId` check -- enables message injection | db            | `repository.ts:23-28`                  |
+| M19 | Unsafe `JSON.parse()` without try/catch on db content               | db            | `sqlite-repo.ts:266-268`               |
+| M20 | Raw API key displayed in DOM with no auto-dismiss timeout           | ui            | `ApiKeyManager.tsx:38,65`              |
+| M21 | Unvalidated `chatId` used in URL path construction                  | ui            | `useWebSocket.ts:12`, `api.ts:41`      |
+| M22 | No CSP meta tag or headers defined in UI                            | ui            | `index.html`                           |
 
 ---
 
 ## Low Findings
 
-| # | Finding | Package | File:Line |
-|---|---------|---------|-----------|
-| L1 | WebSocket role is user-controlled | server | `routes/ws.ts:14` |
-| L2 | WebSocket error messages broadcast internal details | server | `routes/ws.ts:176-181` |
-| L3 | User enumeration via different registration error codes | server | `routes/auth.ts:37-50` |
-| L4 | Non-exhaustive WebSocket event type handling | shared+server | `ws.ts:20-23` |
-| L5 | `.env.example` contains realistic placeholder creds | root | `.env.example:2,14,17` |
-| L6 | No server-sent WS message validation in client | client | `local-client.ts:96-98` |
-| L7 | Client error messages leak details to server | client | `local-client.ts:173-176` |
-| L8 | README documents insecure example creds (`changeme`) | root | `README.md:135-144` |
-| L9 | Default bind to `0.0.0.0` in dev | root | `.env.example:24` |
-| L10 | Source maps shipped to production Docker image | root | `tsconfig.base.json:14` |
-| L11 | No foreign key constraints or cascade deletes | db | `sqlite-repo.ts:29-72` |
-| L12 | No `close()` method on repository -- connection leak | db | All repository classes |
-| L13 | WebSocket silently ignores JSON parse errors | ui | `useWebSocket.ts:30-35` |
-| L14 | Server error messages rendered directly in UI | ui | `LoginForm.tsx:39`, `api.ts:21` |
-| L15 | `useState` misused for data fetching side effect | ui | `AppLayout.tsx:18-21` |
+| #   | Finding                                                 | Package       | File:Line                       |
+| --- | ------------------------------------------------------- | ------------- | ------------------------------- |
+| L1  | WebSocket role is user-controlled                       | server        | `routes/ws.ts:14`               |
+| L2  | WebSocket error messages broadcast internal details     | server        | `routes/ws.ts:176-181`          |
+| L3  | User enumeration via different registration error codes | server        | `routes/auth.ts:37-50`          |
+| L4  | Non-exhaustive WebSocket event type handling            | shared+server | `ws.ts:20-23`                   |
+| L5  | `.env.example` contains realistic placeholder creds     | root          | `.env.example:2,14,17`          |
+| L6  | No server-sent WS message validation in client          | client        | `local-client.ts:96-98`         |
+| L7  | Client error messages leak details to server            | client        | `local-client.ts:173-176`       |
+| L8  | README documents insecure example creds (`changeme`)    | root          | `README.md:135-144`             |
+| L9  | Default bind to `0.0.0.0` in dev                        | root          | `.env.example:24`               |
+| L10 | Source maps shipped to production Docker image          | root          | `tsconfig.base.json:14`         |
+| L11 | No foreign key constraints or cascade deletes           | db            | `sqlite-repo.ts:29-72`          |
+| L12 | No `close()` method on repository -- connection leak    | db            | All repository classes          |
+| L13 | WebSocket silently ignores JSON parse errors            | ui            | `useWebSocket.ts:30-35`         |
+| L14 | Server error messages rendered directly in UI           | ui            | `LoginForm.tsx:39`, `api.ts:21` |
+| L15 | `useState` misused for data fetching side effect        | ui            | `AppLayout.tsx:18-21`           |
 
 ---
 

@@ -11,7 +11,14 @@ interface Props {
   onPaste?: () => void;
 }
 
-export function Input({ onSubmit, disabled, placeholder, value: controlledValue, onChange, onPaste }: Props) {
+export function Input({
+  onSubmit,
+  disabled,
+  placeholder,
+  value: controlledValue,
+  onChange,
+  onPaste,
+}: Props) {
   const [internalValue, setInternalValue] = React.useState("");
 
   const value = controlledValue !== undefined ? controlledValue : internalValue;
@@ -29,7 +36,11 @@ export function Input({ onSubmit, disabled, placeholder, value: controlledValue,
   });
 
   return (
-    <Box borderStyle="single" borderColor={disabled ? "gray" : "blue"} paddingX={1}>
+    <Box
+      borderStyle="single"
+      borderColor={disabled ? "gray" : "blue"}
+      paddingX={1}
+    >
       {disabled ? (
         <Text dimColor>Waiting for response...</Text>
       ) : (

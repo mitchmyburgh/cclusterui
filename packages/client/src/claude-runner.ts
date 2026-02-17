@@ -9,7 +9,7 @@ import type {
 } from "@mitchmyburgh/shared";
 
 export type ToolApprovalCallback = (
-  request: ToolApprovalRequest
+  request: ToolApprovalRequest,
 ) => Promise<ToolApprovalResponse>;
 
 export interface RunClaudeOptions {
@@ -24,7 +24,13 @@ export interface RunClaudeOptions {
 }
 
 const AUTO_ALLOW_TOOLS = ["Read", "Glob", "Grep"];
-const PLAN_MODE_READ_ONLY_TOOLS = ["Read", "Glob", "Grep", "WebSearch", "WebFetch"];
+const PLAN_MODE_READ_ONLY_TOOLS = [
+  "Read",
+  "Glob",
+  "Grep",
+  "WebSearch",
+  "WebFetch",
+];
 
 // Match @filepath and @filepath#line-line patterns
 const FILE_REF_RE = /(?:^|\s)@([\w./_-]+(?:#\d+(?:-\d+)?)?)(?=\s|$)/g;
@@ -50,22 +56,29 @@ function parseFileReferences(text: string): FileReference[] {
       const dashIdx = lineSpec.indexOf("-");
       if (dashIdx === -1) {
         const line = parseInt(lineSpec, 10);
-        if (!isNaN(line)) refs.push({ raw: `@${raw}`, path, startLine: line, endLine: line });
+        if (!isNaN(line))
+          refs.push({ raw: `@${raw}`, path, startLine: line, endLine: line });
       } else {
         const start = parseInt(lineSpec.substring(0, dashIdx), 10);
         const end = parseInt(lineSpec.substring(dashIdx + 1), 10);
-        if (!isNaN(start) && !isNaN(end)) refs.push({ raw: `@${raw}`, path, startLine: start, endLine: end });
+        if (!isNaN(start) && !isNaN(end))
+          refs.push({ raw: `@${raw}`, path, startLine: start, endLine: end });
       }
     }
   }
   return refs;
 }
 
-async function resolveFileReferences(cwd: string, refs: FileReference[]): Promise<string> {
+async function resolveFileReferences(
+  cwd: string,
+  refs: FileReference[],
+): Promise<string> {
   const blocks: string[] = [];
   for (const ref of refs) {
     try {
-      const fullPath = ref.path.startsWith("/") ? ref.path : `${cwd}/${ref.path}`;
+      const fullPath = ref.path.startsWith("/")
+        ? ref.path
+        : `${cwd}/${ref.path}`;
       const content = await readFile(fullPath, "utf-8");
       let excerpt: string;
       if (ref.startLine !== undefined && ref.endLine !== undefined) {
@@ -74,7 +87,9 @@ async function resolveFileReferences(cwd: string, refs: FileReference[]): Promis
       } else {
         excerpt = content;
       }
-      blocks.push(`<file_reference path="${ref.path}"${ref.startLine ? ` lines="${ref.startLine}-${ref.endLine}"` : ""}>\n${excerpt}\n</file_reference>`);
+      blocks.push(
+        `<file_reference path="${ref.path}"${ref.startLine ? ` lines="${ref.startLine}-${ref.endLine}"` : ""}>\n${excerpt}\n</file_reference>`,
+      );
     } catch {
       // File not found, skip
     }
@@ -83,7 +98,7 @@ async function resolveFileReferences(cwd: string, refs: FileReference[]): Promis
 }
 
 export async function* runClaude(
-  options: RunClaudeOptions
+  options: RunClaudeOptions,
 ): AsyncGenerator<WSProducerEvent> {
   const {
     content,
@@ -96,7 +111,11 @@ export async function* runClaude(
     onToolApproval,
   } = options;
 
-  const mode = getMode ? getMode() : (humanInTheLoop ? "human_confirm" : "accept_all");
+  const mode = getMode
+    ? getMode()
+    : humanInTheLoop
+      ? "human_confirm"
+      : "accept_all";
 
   const abortController = new AbortController();
 
@@ -168,7 +187,7 @@ export async function* runClaude(
     queryOptions.canUseTool = async (
       toolName: string,
       input: unknown,
-      _opts: unknown
+      _opts: unknown,
     ) => {
       if (PLAN_MODE_READ_ONLY_TOOLS.includes(toolName)) {
         return { behavior: "allow" as const, updatedInput: input };
@@ -183,7 +202,7 @@ export async function* runClaude(
     queryOptions.canUseTool = async (
       toolName: string,
       input: unknown,
-      _opts: unknown
+      _opts: unknown,
     ) => {
       // Auto-allow read-only tools
       if (AUTO_ALLOW_TOOLS.includes(toolName)) {
@@ -215,8 +234,12 @@ export async function* runClaude(
     };
   } else {
     // accept_all mode
-    console.warn("WARNING: Running without human-in-the-loop. The agent can execute arbitrary commands.");
-    console.warn("Use --mode human_confirm or --hitl flag for safer operation.");
+    console.warn(
+      "WARNING: Running without human-in-the-loop. The agent can execute arbitrary commands.",
+    );
+    console.warn(
+      "Use --mode human_confirm or --hitl flag for safer operation.",
+    );
     queryOptions.permissionMode = "bypassPermissions";
     queryOptions.allowDangerouslySkipPermissions = true;
   }
@@ -283,8 +306,7 @@ export async function* runClaude(
         if ("result" in message && message.result) {
           resultText = resultText || (message as any).result;
         }
-        const isSuccess =
-          "subtype" in message && message.subtype === "success";
+        const isSuccess = "subtype" in message && message.subtype === "success";
         if (isSuccess) {
           const r = message as any;
           yield {
@@ -300,8 +322,7 @@ export async function* runClaude(
                 inputTokens: r.usage?.input_tokens || 0,
                 outputTokens: r.usage?.output_tokens || 0,
                 durationMs: r.duration_ms || 0,
-                model:
-                  Object.keys(r.modelUsage || {})[0] || "unknown",
+                model: Object.keys(r.modelUsage || {})[0] || "unknown",
               },
             },
             sessionId: currentSessionId,

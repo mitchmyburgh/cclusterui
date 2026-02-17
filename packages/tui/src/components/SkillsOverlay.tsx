@@ -31,8 +31,15 @@ export function SkillsOverlay({ skills, onInvoke, onClose }: Props) {
   });
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor="yellow" paddingX={1}>
-      <Text bold color="yellow">Skills</Text>
+    <Box
+      flexDirection="column"
+      borderStyle="round"
+      borderColor="yellow"
+      paddingX={1}
+    >
+      <Text bold color="yellow">
+        Skills
+      </Text>
       <Box flexDirection="column" marginTop={1}>
         {skills.map((skill, idx) => (
           <Box key={skill.id} gap={1}>
@@ -47,7 +54,7 @@ export function SkillsOverlay({ skills, onInvoke, onClose }: Props) {
         ))}
       </Box>
       <Box marginTop={1}>
-        <Text dimColor>Enter invoke  Esc close</Text>
+        <Text dimColor>Enter invoke Esc close</Text>
       </Box>
     </Box>
   );

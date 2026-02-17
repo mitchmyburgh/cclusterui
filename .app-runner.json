@@ -2,12 +2,12 @@
   "cclusterui": {
     "description": "Claude Chat – shared types, db, client, server, and UI",
     "processes": [
-      { "title": "Shared",  "cwd": "./packages/shared",  "cmd": "pnpm dev" },
-      { "title": "DB",      "cwd": "./packages/db",      "cmd": "pnpm dev" },
-      { "title": "Client",  "cwd": "./packages/client",  "cmd": "pnpm dev" },
-      { "title": "Server",  "cwd": "./packages/server",  "cmd": "pnpm dev" },
-      { "title": "UI",      "cwd": "./packages/ui",      "cmd": "pnpm dev" },
-      { "title": "TUI",     "cwd": "./packages/tui",     "cmd": "pnpm dev" }
+      { "title": "Shared", "cwd": "./packages/shared", "cmd": "pnpm dev" },
+      { "title": "DB", "cwd": "./packages/db", "cmd": "pnpm dev" },
+      { "title": "Client", "cwd": "./packages/client", "cmd": "pnpm dev" },
+      { "title": "Server", "cwd": "./packages/server", "cmd": "pnpm dev" },
+      { "title": "UI", "cwd": "./packages/ui", "cmd": "pnpm dev" },
+      { "title": "TUI", "cwd": "./packages/tui", "cmd": "pnpm dev" }
     ]
   }
 }

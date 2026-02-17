@@ -10,12 +10,12 @@ const program = new Command()
   .option(
     "-s, --server <url>",
     "Server URL",
-    process.env["CLAUDE_CHAT_SERVER"] || "http://localhost:3000"
+    process.env["CLAUDE_CHAT_SERVER"] || "http://localhost:3000",
   )
   .option(
     "-k, --api-key <key>",
     "API key for authentication",
-    process.env["CLAUDE_CHAT_API_KEY"]
+    process.env["CLAUDE_CHAT_API_KEY"],
   )
   .option("-u, --username <username>", "Username for login")
   .option("-p, --password <password>", "Password for login")
@@ -46,7 +46,7 @@ async function main() {
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         console.error(
-          `Login failed: ${(body as { error?: string }).error || `HTTP ${res.status}`}`
+          `Login failed: ${(body as { error?: string }).error || `HTTP ${res.status}`}`,
         );
         process.exit(1);
       }
@@ -58,7 +58,7 @@ async function main() {
       console.log(`Logged in as ${body.data.user.username}`);
     } catch (e) {
       console.error(
-        `Login failed: ${e instanceof Error ? e.message : "Network error"}`
+        `Login failed: ${e instanceof Error ? e.message : "Network error"}`,
       );
       process.exit(1);
     }
@@ -66,7 +66,7 @@ async function main() {
 
   if (!apiKey) {
     console.error(
-      "Error: Authentication required. Use --api-key, CLAUDE_CHAT_API_KEY, or --username/--password."
+      "Error: Authentication required. Use --api-key, CLAUDE_CHAT_API_KEY, or --username/--password.",
     );
     process.exit(1);
   }

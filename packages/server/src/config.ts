@@ -22,7 +22,7 @@ export function loadConfig(): ServerConfig {
 
   if (!jwtSecret && apiKeys.length === 0) {
     throw new Error(
-      "FATAL: No authentication configured. Set JWT_SECRET and/or API_KEYS environment variable(s)."
+      "FATAL: No authentication configured. Set JWT_SECRET and/or API_KEYS environment variable(s).",
     );
   }
 
@@ -35,9 +35,12 @@ export function loadConfig(): ServerConfig {
     host: process.env.HOST || "0.0.0.0",
     apiKeys,
     jwtSecret,
-    allowedUsernames: (process.env.ALLOWED_USERNAMES || "").split(",").filter(Boolean),
+    allowedUsernames: (process.env.ALLOWED_USERNAMES || "")
+      .split(",")
+      .filter(Boolean),
     db: {
-      driver: (process.env.DB_DRIVER as ServerConfig["db"]["driver"]) || "sqlite",
+      driver:
+        (process.env.DB_DRIVER as ServerConfig["db"]["driver"]) || "sqlite",
       sqlitePath: process.env.SQLITE_PATH || "./data/claude-chat.db",
       postgresUrl: process.env.POSTGRES_URL,
       mysqlUrl: process.env.MYSQL_URL,

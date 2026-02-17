@@ -40,7 +40,8 @@ export class LocalClient {
   constructor(options: LocalClientOptions) {
     this.options = options;
     this._chatId = options.chatId;
-    this.mode = options.mode || (options.humanInTheLoop ? "human_confirm" : "accept_all");
+    this.mode =
+      options.mode || (options.humanInTheLoop ? "human_confirm" : "accept_all");
   }
 
   get chatId(): string | undefined {
@@ -55,13 +56,15 @@ export class LocalClient {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify(this.options.chatName ? { title: this.options.chatName } : {}),
+      body: JSON.stringify(
+        this.options.chatName ? { title: this.options.chatName } : {},
+      ),
     });
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
       throw new Error(
-        `Failed to create chat: ${(body as any).error || res.statusText}`
+        `Failed to create chat: ${(body as any).error || res.statusText}`,
       );
     }
 
@@ -94,7 +97,9 @@ export class LocalClient {
         console.log(`Connected to server as producer for chat ${chatId}`);
         console.log(`Agent mode: ${this.mode}`);
         if (this.mode === "human_confirm") {
-          console.log("Human-in-the-loop: enabled (write/exec tools require approval)");
+          console.log(
+            "Human-in-the-loop: enabled (write/exec tools require approval)",
+          );
         }
         this.startHeartbeat();
         // Register available skills
@@ -151,7 +156,7 @@ export class LocalClient {
   }
 
   private async handleServerEvent(
-    event: WSServerToProducerEvent
+    event: WSServerToProducerEvent,
   ): Promise<void> {
     switch (event.type) {
       case "process_message": {
@@ -162,7 +167,9 @@ export class LocalClient {
 
         this.abortController = new AbortController();
 
-        console.log(`Processing message for chat ${event.chatId} (mode: ${this.mode})`);
+        console.log(
+          `Processing message for chat ${event.chatId} (mode: ${this.mode})`,
+        );
 
         const needsApproval = this.mode === "human_confirm";
 
@@ -205,7 +212,7 @@ export class LocalClient {
           const results = await searchFiles(
             this.options.cwd,
             event.query,
-            event.searchType
+            event.searchType,
           );
           this.send({
             type: "file_search_results",
@@ -222,7 +229,10 @@ export class LocalClient {
       case "invoke_skill": {
         const skill = getSkillById(event.skillId);
         if (!skill) {
-          this.send({ type: "error", error: `Unknown skill: ${event.skillId}` });
+          this.send({
+            type: "error",
+            error: `Unknown skill: ${event.skillId}`,
+          });
           break;
         }
 
@@ -252,7 +262,10 @@ export class LocalClient {
           }
         } catch (err: any) {
           if (err.name !== "AbortError") {
-            this.send({ type: "error", error: err.message || "Skill execution failed" });
+            this.send({
+              type: "error",
+              error: err.message || "Skill execution failed",
+            });
           }
         }
 
@@ -290,7 +303,7 @@ export class LocalClient {
   }
 
   private requestToolApproval(
-    request: ToolApprovalRequest
+    request: ToolApprovalRequest,
   ): Promise<ToolApprovalResponse> {
     return new Promise((resolve) => {
       this.pendingApprovals.set(request.requestId, { resolve });

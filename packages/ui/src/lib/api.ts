@@ -38,7 +38,6 @@ export function createApiClient(apiKey: string) {
         method: "PATCH",
         body: JSON.stringify(body),
       }),
-    delete: (path: string) =>
-      request<void>(path, { method: "DELETE" }),
+    delete: (path: string) => request<void>(path, { method: "DELETE" }),
   };
 }

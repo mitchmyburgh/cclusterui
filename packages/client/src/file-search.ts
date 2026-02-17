@@ -21,7 +21,7 @@ export async function searchFiles(
   cwd: string,
   query: string,
   searchType: "filename" | "content",
-  maxResults: number = MAX_FILE_SEARCH_RESULTS
+  maxResults: number = MAX_FILE_SEARCH_RESULTS,
 ): Promise<FileSearchResult[]> {
   try {
     if (searchType === "filename") {
@@ -38,7 +38,7 @@ export async function searchFiles(
 async function searchFilenames(
   cwd: string,
   query: string,
-  maxResults: number
+  maxResults: number,
 ): Promise<FileSearchResult[]> {
   try {
     const { stdout } = await execFileAsync("git", ["ls-files"], {
@@ -63,7 +63,7 @@ async function searchFilenames(
 async function searchContent(
   cwd: string,
   query: string,
-  maxResults: number
+  maxResults: number,
 ): Promise<FileSearchResult[]> {
   try {
     const { stdout } = await execFileAsync(
@@ -73,7 +73,7 @@ async function searchContent(
         cwd,
         timeout: SEARCH_TIMEOUT,
         maxBuffer: 5 * 1024 * 1024,
-      }
+      },
     );
 
     const lines = stdout.split("\n").filter(Boolean);
@@ -88,7 +88,10 @@ async function searchContent(
       if (secondColon === -1) continue;
 
       const path = line.substring(0, firstColon);
-      const lineNumber = parseInt(line.substring(firstColon + 1, secondColon), 10);
+      const lineNumber = parseInt(
+        line.substring(firstColon + 1, secondColon),
+        10,
+      );
       const lineContent = line.substring(secondColon + 1).trim();
 
       if (isNaN(lineNumber)) continue;

@@ -9,7 +9,10 @@ export interface StoredUser {
 }
 
 export function getStoredToken(): string | null {
-  return sessionStorage.getItem(TOKEN_STORAGE_KEY) || localStorage.getItem(API_KEY_STORAGE_KEY);
+  return (
+    sessionStorage.getItem(TOKEN_STORAGE_KEY) ||
+    localStorage.getItem(API_KEY_STORAGE_KEY)
+  );
 }
 
 export function setStoredToken(token: string): void {

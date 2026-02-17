@@ -5,7 +5,9 @@ export interface ClipboardResult {
   mimeType?: string;
 }
 
-export async function fetchClipboard(port: number = 17995): Promise<ClipboardResult | null> {
+export async function fetchClipboard(
+  port: number = 17995,
+): Promise<ClipboardResult | null> {
   try {
     const response = await fetch(`http://localhost:${port}/clipboard`, {
       signal: AbortSignal.timeout(2000),

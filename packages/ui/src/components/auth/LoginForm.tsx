@@ -26,7 +26,8 @@ export function LoginForm({ onLogin, onApiKey }: LoginFormProps) {
 
     setLoading(true);
     try {
-      const endpoint = tab === "login" ? "/api/auth/login" : "/api/auth/register";
+      const endpoint =
+        tab === "login" ? "/api/auth/login" : "/api/auth/register";
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -68,16 +69,17 @@ export function LoginForm({ onLogin, onApiKey }: LoginFormProps) {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-lg border border-gray-200">
         <h1 className="mb-2 text-2xl font-bold text-gray-900">Claude Chat</h1>
-        <p className="mb-6 text-sm text-gray-500">
-          Sign in to start chatting.
-        </p>
+        <p className="mb-6 text-sm text-gray-500">Sign in to start chatting.</p>
 
         {/* Tabs */}
         <div className="mb-6 flex rounded-md bg-gray-100 p-1">
           {tabs.map((t) => (
             <button
               key={t.key}
-              onClick={() => { setTab(t.key); setError(""); }}
+              onClick={() => {
+                setTab(t.key);
+                setError("");
+              }}
               className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                 tab === t.key
                   ? "bg-[#cb3837] text-white"
@@ -94,7 +96,10 @@ export function LoginForm({ onLogin, onApiKey }: LoginFormProps) {
             <input
               type="password"
               value={apiKey}
-              onChange={(e) => { setApiKeyValue(e.target.value); setError(""); }}
+              onChange={(e) => {
+                setApiKeyValue(e.target.value);
+                setError("");
+              }}
               placeholder="Enter API key..."
               className="mb-3 w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 outline-none focus:border-[#cb3837] focus:ring-1 focus:ring-[#cb3837]"
               autoFocus
@@ -112,7 +117,10 @@ export function LoginForm({ onLogin, onApiKey }: LoginFormProps) {
             <input
               type="text"
               value={username}
-              onChange={(e) => { setUsername(e.target.value); setError(""); }}
+              onChange={(e) => {
+                setUsername(e.target.value);
+                setError("");
+              }}
               placeholder="Username"
               className="mb-3 w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 outline-none focus:border-[#cb3837] focus:ring-1 focus:ring-[#cb3837]"
               autoFocus
@@ -121,10 +129,15 @@ export function LoginForm({ onLogin, onApiKey }: LoginFormProps) {
             <input
               type="password"
               value={password}
-              onChange={(e) => { setPassword(e.target.value); setError(""); }}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setError("");
+              }}
               placeholder="Password"
               className="mb-3 w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 outline-none focus:border-[#cb3837] focus:ring-1 focus:ring-[#cb3837]"
-              autoComplete={tab === "register" ? "new-password" : "current-password"}
+              autoComplete={
+                tab === "register" ? "new-password" : "current-password"
+              }
             />
             {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
             <button

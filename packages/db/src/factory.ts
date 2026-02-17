@@ -11,7 +11,9 @@ export interface DbConfig {
   mongodbName?: string;
 }
 
-export async function createRepository(config: DbConfig): Promise<ChatRepository> {
+export async function createRepository(
+  config: DbConfig,
+): Promise<ChatRepository> {
   switch (config.driver) {
     case "sqlite": {
       if (!config.sqlitePath) {

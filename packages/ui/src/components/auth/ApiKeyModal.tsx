@@ -29,7 +29,10 @@ export function ApiKeyModal({ onSubmit }: ApiKeyModalProps) {
           <input
             type="password"
             value={key}
-            onChange={(e) => { setKey(e.target.value); setError(""); }}
+            onChange={(e) => {
+              setKey(e.target.value);
+              setError("");
+            }}
             placeholder="Enter API key..."
             className="mb-3 w-full rounded-md border border-gray-600 bg-gray-700 px-4 py-3 text-white placeholder-gray-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             autoFocus

@@ -6,10 +6,7 @@ import type {
 } from "@mitchmyburgh/shared";
 
 export function createApiClient(serverUrl: string, apiKey: string) {
-  async function request<T>(
-    path: string,
-    options?: RequestInit
-  ): Promise<T> {
+  async function request<T>(path: string, options?: RequestInit): Promise<T> {
     const res = await fetch(`${serverUrl}${path}`, {
       ...options,
       headers: {
@@ -26,7 +23,7 @@ export function createApiClient(serverUrl: string, apiKey: string) {
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
       throw new Error(
-        (body as { error?: string }).error || `HTTP ${res.status}`
+        (body as { error?: string }).error || `HTTP ${res.status}`,
       );
     }
 
@@ -35,8 +32,7 @@ export function createApiClient(serverUrl: string, apiKey: string) {
   }
 
   return {
-    listChats: () =>
-      request<ApiListResponse<Chat>>("/api/chats"),
+    listChats: () => request<ApiListResponse<Chat>>("/api/chats"),
     createChat: (input?: CreateChatInput) =>
       request<ApiResponse<Chat>>("/api/chats", {
         method: "POST",
@@ -44,11 +40,10 @@ export function createApiClient(serverUrl: string, apiKey: string) {
       }),
     deleteChat: (id: string) =>
       request<void>(`/api/chats/${id}`, { method: "DELETE" }),
-    getChat: (id: string) =>
-      request<ApiResponse<Chat>>(`/api/chats/${id}`),
+    getChat: (id: string) => request<ApiResponse<Chat>>(`/api/chats/${id}`),
     getMessages: (chatId: string) =>
       request<ApiListResponse<import("@mitchmyburgh/shared").Message>>(
-        `/api/chats/${chatId}/messages`
+        `/api/chats/${chatId}/messages`,
       ),
   };
 }

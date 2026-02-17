@@ -149,7 +149,10 @@ export class MongoRepository implements ChatRepository {
     return this.chatDocToChat(doc);
   }
 
-  async listChats(userId: string, params?: PaginationParams): Promise<{ chats: Chat[]; total: number }> {
+  async listChats(
+    userId: string,
+    params?: PaginationParams,
+  ): Promise<{ chats: Chat[]; total: number }> {
     const limit = params?.limit ?? DEFAULT_PAGE_SIZE;
     const offset = params?.offset ?? 0;
 
@@ -168,7 +171,11 @@ export class MongoRepository implements ChatRepository {
     };
   }
 
-  async updateChat(id: string, userId: string, input: UpdateChatInput): Promise<Chat | null> {
+  async updateChat(
+    id: string,
+    userId: string,
+    input: UpdateChatInput,
+  ): Promise<Chat | null> {
     const updatedAt = new Date().toISOString();
 
     const result = await this.chats.findOneAndUpdate(
@@ -179,7 +186,7 @@ export class MongoRepository implements ChatRepository {
           updatedAt,
         },
       },
-      { returnDocument: "after" }
+      { returnDocument: "after" },
     );
 
     if (!result) {
@@ -204,7 +211,11 @@ export class MongoRepository implements ChatRepository {
     return true;
   }
 
-  async setChatSession(chatId: string, sessionId: string, userId: string): Promise<void> {
+  async setChatSession(
+    chatId: string,
+    sessionId: string,
+    userId: string,
+  ): Promise<void> {
     const updatedAt = new Date().toISOString();
 
     await this.chats.updateOne(
@@ -214,7 +225,7 @@ export class MongoRepository implements ChatRepository {
           sessionId,
           updatedAt,
         },
-      }
+      },
     );
   }
 
@@ -224,7 +235,7 @@ export class MongoRepository implements ChatRepository {
     chatId: string,
     role: "user" | "assistant",
     content: MessageContent[],
-    metadata?: MessageMetadata
+    metadata?: MessageMetadata,
   ): Promise<Message> {
     const now = new Date().toISOString();
     const doc: MessageDoc = {
@@ -246,7 +257,7 @@ export class MongoRepository implements ChatRepository {
 
   async getMessages(
     chatId: string,
-    params?: PaginationParams
+    params?: PaginationParams,
   ): Promise<{ messages: Message[]; total: number }> {
     const limit = params?.limit ?? DEFAULT_PAGE_SIZE;
     const offset = params?.offset ?? 0;
@@ -291,7 +302,9 @@ export class MongoRepository implements ChatRepository {
     return this.userDocToUser(doc);
   }
 
-  async getUserByUsername(username: string): Promise<(User & { passwordHash: string }) | null> {
+  async getUserByUsername(
+    username: string,
+  ): Promise<(User & { passwordHash: string }) | null> {
     const doc = await this.users.findOne({ username });
     if (!doc) {
       return null;
@@ -317,7 +330,12 @@ export class MongoRepository implements ChatRepository {
 
   // API key operations
 
-  async createApiKey(userId: string, keyHash: string, keyPrefix: string, name: string): Promise<ApiKey> {
+  async createApiKey(
+    userId: string,
+    keyHash: string,
+    keyPrefix: string,
+    name: string,
+  ): Promise<ApiKey> {
     const now = new Date().toISOString();
     const doc: ApiKeyDoc = {
       _id: randomUUID(),
@@ -335,7 +353,9 @@ export class MongoRepository implements ChatRepository {
     return this.apiKeyDocToApiKey(doc);
   }
 
-  async getApiKeyByHash(keyHash: string): Promise<(ApiKey & { userId: string }) | null> {
+  async getApiKeyByHash(
+    keyHash: string,
+  ): Promise<(ApiKey & { userId: string }) | null> {
     const doc = await this.apiKeys.findOne({ keyHash, revokedAt: null });
     if (!doc) {
       return null;
@@ -365,7 +385,7 @@ export class MongoRepository implements ChatRepository {
     const result = await this.apiKeys.findOneAndUpdate(
       { _id: id, userId },
       { $set: { revokedAt: new Date().toISOString() } },
-      { returnDocument: "after" }
+      { returnDocument: "after" },
     );
 
     return result !== null;
@@ -374,7 +394,7 @@ export class MongoRepository implements ChatRepository {
   async updateApiKeyLastUsed(id: string): Promise<void> {
     await this.apiKeys.updateOne(
       { _id: id },
-      { $set: { lastUsedAt: new Date().toISOString() } }
+      { $set: { lastUsedAt: new Date().toISOString() } },
     );
   }
 }

@@ -7,21 +7,25 @@ interface ToolApprovalDialogProps {
 }
 
 function formatToolInput(toolName: string, input: unknown): string {
-  if (!input || typeof input !== "object") return JSON.stringify(input, null, 2);
+  if (!input || typeof input !== "object")
+    return JSON.stringify(input, null, 2);
   const obj = input as Record<string, unknown>;
 
   switch (toolName) {
     case "Bash":
-      return obj.command as string || JSON.stringify(input, null, 2);
+      return (obj.command as string) || JSON.stringify(input, null, 2);
     case "Write":
     case "Edit":
-      return obj.file_path as string || JSON.stringify(input, null, 2);
+      return (obj.file_path as string) || JSON.stringify(input, null, 2);
     default:
       return JSON.stringify(input, null, 2);
   }
 }
 
-export function ToolApprovalDialog({ request, onRespond }: ToolApprovalDialogProps) {
+export function ToolApprovalDialog({
+  request,
+  onRespond,
+}: ToolApprovalDialogProps) {
   const [expanded, setExpanded] = useState(false);
 
   const summary = formatToolInput(request.toolName, request.toolInput);
@@ -32,7 +36,9 @@ export function ToolApprovalDialog({ request, onRespond }: ToolApprovalDialogPro
     <div className="mx-4 mb-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
       <div className="mb-2 flex items-center gap-2">
         <span className="inline-block h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-        <span className="text-sm font-semibold text-amber-700">Approval Required</span>
+        <span className="text-sm font-semibold text-amber-700">
+          Approval Required
+        </span>
         <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-800">
           {request.toolName}
         </span>

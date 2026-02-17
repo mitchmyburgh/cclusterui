@@ -5,7 +5,16 @@ import { createApiClient } from "../../lib/api";
 import { ChatInput } from "./ChatInput";
 import { MessageBubble } from "./MessageBubble";
 import { ToolApprovalDialog } from "./ToolApprovalDialog";
-import type { Chat, Message, MessageContent, WSServerToViewerEvent, ToolApprovalRequest, AgentMode, FileSearchResult, Skill } from "@mitchmyburgh/shared";
+import type {
+  Chat,
+  Message,
+  MessageContent,
+  WSServerToViewerEvent,
+  ToolApprovalRequest,
+  AgentMode,
+  FileSearchResult,
+  Skill,
+} from "@mitchmyburgh/shared";
 import { ModeSelector } from "./ModeSelector";
 
 interface ChatPanelProps {
@@ -24,8 +33,11 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
   const [producerConnected, setProducerConnected] = useState(false);
   const [hitlEnabled, setHitlEnabled] = useState(false);
   const [mode, setMode] = useState<AgentMode>("accept_all");
-  const [pendingApproval, setPendingApproval] = useState<ToolApprovalRequest | null>(null);
-  const [fileSearchResults, setFileSearchResults] = useState<FileSearchResult[]>([]);
+  const [pendingApproval, setPendingApproval] =
+    useState<ToolApprovalRequest | null>(null);
+  const [fileSearchResults, setFileSearchResults] = useState<
+    FileSearchResult[]
+  >([]);
   const [fileSearchLoading, setFileSearchLoading] = useState(false);
   const [skills, setSkills] = useState<Skill[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -34,8 +46,12 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
   // Fetch message history
   useEffect(() => {
     const api = createApiClient(apiKey);
-    api.get<{ data: Message[]; total: number }>(`/api/chats/${chatId}/messages`)
-      .then((res) => { setMessages(res.data); setLoading(false); })
+    api
+      .get<{ data: Message[]; total: number }>(`/api/chats/${chatId}/messages`)
+      .then((res) => {
+        setMessages(res.data);
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   }, [chatId, apiKey]);
 
@@ -108,32 +124,44 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
 
   const { connected, send } = useWebSocket(chatId, apiKey, handleWSEvent);
 
-  const handleSend = useCallback((content: MessageContent[]) => {
-    // Optimistically add user message
-    const userMsg: Message = {
-      id: `temp-${crypto.randomUUID()}`,
-      chatId,
-      role: "user",
-      content,
-      createdAt: new Date().toISOString(),
-    };
-    setMessages((prev) => [...prev, userMsg]);
-    send({ type: "send_message", content });
-  }, [chatId, send]);
+  const handleSend = useCallback(
+    (content: MessageContent[]) => {
+      // Optimistically add user message
+      const userMsg: Message = {
+        id: `temp-${crypto.randomUUID()}`,
+        chatId,
+        role: "user",
+        content,
+        createdAt: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, userMsg]);
+      send({ type: "send_message", content });
+    },
+    [chatId, send],
+  );
 
-  const handleFileSearch = useCallback((query: string, searchType: "filename" | "content") => {
-    setFileSearchLoading(true);
-    send({ type: "file_search", query, searchType });
-  }, [send]);
+  const handleFileSearch = useCallback(
+    (query: string, searchType: "filename" | "content") => {
+      setFileSearchLoading(true);
+      send({ type: "file_search", query, searchType });
+    },
+    [send],
+  );
 
-  const handleInvokeSkill = useCallback((skillId: string) => {
-    send({ type: "invoke_skill", skillId });
-  }, [send]);
+  const handleInvokeSkill = useCallback(
+    (skillId: string) => {
+      send({ type: "invoke_skill", skillId });
+    },
+    [send],
+  );
 
-  const handleModeChange = useCallback((newMode: AgentMode) => {
-    send({ type: "set_mode", mode: newMode });
-    setMode(newMode);
-  }, [send]);
+  const handleModeChange = useCallback(
+    (newMode: AgentMode) => {
+      send({ type: "set_mode", mode: newMode });
+      setMode(newMode);
+    },
+    [send],
+  );
 
   const handleCancel = useCallback(() => {
     send({ type: "cancel" });
@@ -143,19 +171,22 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
     setPendingApproval(null);
   }, [send]);
 
-  const handleApprovalResponse = useCallback((approved: boolean, alwaysAllow?: boolean) => {
-    if (!pendingApproval) return;
-    send({
-      type: "tool_approval_response",
-      response: {
-        requestId: pendingApproval.requestId,
-        approved,
-        alwaysAllow,
-        message: approved ? undefined : "User denied permission",
-      },
-    });
-    setPendingApproval(null);
-  }, [pendingApproval, send]);
+  const handleApprovalResponse = useCallback(
+    (approved: boolean, alwaysAllow?: boolean) => {
+      if (!pendingApproval) return;
+      send({
+        type: "tool_approval_response",
+        response: {
+          requestId: pendingApproval.requestId,
+          approved,
+          alwaysAllow,
+          message: approved ? undefined : "User denied permission",
+        },
+      });
+      setPendingApproval(null);
+    },
+    [pendingApproval, send],
+  );
 
   const isStreaming = streamingId !== null;
 
@@ -164,13 +195,19 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-2">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-semibold text-gray-900 truncate">{chat?.title || "Chat"}</h2>
+          <h2 className="text-sm font-semibold text-gray-900 truncate">
+            {chat?.title || "Chat"}
+          </h2>
           <span
             className={`inline-block h-2 w-2 rounded-full ${producerConnected ? "bg-green-500" : "bg-red-500"}`}
-            title={producerConnected ? "Client connected" : "No client connected"}
+            title={
+              producerConnected ? "Client connected" : "No client connected"
+            }
           />
           {!connected && (
-            <span className="rounded bg-amber-100 text-amber-700 px-1.5 py-0.5 text-[10px]">Reconnecting...</span>
+            <span className="rounded bg-amber-100 text-amber-700 px-1.5 py-0.5 text-[10px]">
+              Reconnecting...
+            </span>
           )}
           <ModeSelector
             mode={mode}
@@ -178,7 +215,9 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
             disabled={!producerConnected}
           />
           {status !== "idle" && (
-            <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-600">{status}</span>
+            <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-600">
+              {status}
+            </span>
           )}
         </div>
         <button
@@ -196,7 +235,9 @@ export function ChatPanel({ chatId, chat, apiKey, onClose }: ChatPanelProps) {
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-200 border-t-[#cb3837]" />
           </div>
         ) : messages.length === 0 && !isStreaming ? (
-          <p className="py-8 text-center text-sm text-gray-400">Send a message to start the conversation</p>
+          <p className="py-8 text-center text-sm text-gray-400">
+            Send a message to start the conversation
+          </p>
         ) : (
           <>
             {messages.map((msg) => (

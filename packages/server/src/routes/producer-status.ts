@@ -12,7 +12,10 @@ producerStatus.get("/chats/:id/producer-status", async (c) => {
   // Verify chat ownership
   const chat = await repo.getChat(chatId, userId);
   if (!chat) {
-    return c.json({ error: "Chat not found", code: "NOT_FOUND", status: 404 }, 404);
+    return c.json(
+      { error: "Chat not found", code: "NOT_FOUND", status: 404 },
+      404,
+    );
   }
 
   const info = connectionManager.getProducerInfo(chatId);

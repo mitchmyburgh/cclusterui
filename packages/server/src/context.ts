@@ -8,7 +8,9 @@ export interface AppContext {
   config: ServerConfig;
 }
 
-export async function createAppContext(config: ServerConfig): Promise<AppContext> {
+export async function createAppContext(
+  config: ServerConfig,
+): Promise<AppContext> {
   const repo = await createRepository({
     driver: config.db.driver,
     sqlitePath: config.db.sqlitePath,

@@ -85,9 +85,14 @@ describe("SqliteRepository", () => {
     });
 
     it("should update a chat", async () => {
-      const chat = await repo.createChat({ title: "Original Title" }, testUserId);
+      const chat = await repo.createChat(
+        { title: "Original Title" },
+        testUserId,
+      );
       await new Promise((resolve) => setTimeout(resolve, 10));
-      const updated = await repo.updateChat(chat.id, testUserId, { title: "Updated Title" });
+      const updated = await repo.updateChat(chat.id, testUserId, {
+        title: "Updated Title",
+      });
 
       expect(updated).toBeDefined();
       expect(updated?.title).toBe("Updated Title");
@@ -95,7 +100,9 @@ describe("SqliteRepository", () => {
     });
 
     it("should return null when updating non-existent chat", async () => {
-      const result = await repo.updateChat("non-existent-id", testUserId, { title: "Test" });
+      const result = await repo.updateChat("non-existent-id", testUserId, {
+        title: "Test",
+      });
 
       expect(result).toBeNull();
     });
@@ -151,15 +158,19 @@ describe("SqliteRepository", () => {
         chatId,
         "assistant",
         [{ type: "text", text: "Hi there" }],
-        { model: "claude-3-opus-20240229" }
+        { model: "claude-3-opus-20240229" },
       );
 
       expect(message.metadata).toEqual({ model: "claude-3-opus-20240229" });
     });
 
     it("should get messages for a chat", async () => {
-      await repo.addMessage(chatId, "user", [{ type: "text", text: "Message 1" }]);
-      await repo.addMessage(chatId, "assistant", [{ type: "text", text: "Message 2" }]);
+      await repo.addMessage(chatId, "user", [
+        { type: "text", text: "Message 1" },
+      ]);
+      await repo.addMessage(chatId, "assistant", [
+        { type: "text", text: "Message 2" },
+      ]);
 
       const result = await repo.getMessages(chatId);
 
@@ -170,9 +181,15 @@ describe("SqliteRepository", () => {
     });
 
     it("should get messages with pagination", async () => {
-      await repo.addMessage(chatId, "user", [{ type: "text", text: "Message 1" }]);
-      await repo.addMessage(chatId, "assistant", [{ type: "text", text: "Message 2" }]);
-      await repo.addMessage(chatId, "user", [{ type: "text", text: "Message 3" }]);
+      await repo.addMessage(chatId, "user", [
+        { type: "text", text: "Message 1" },
+      ]);
+      await repo.addMessage(chatId, "assistant", [
+        { type: "text", text: "Message 2" },
+      ]);
+      await repo.addMessage(chatId, "user", [
+        { type: "text", text: "Message 3" },
+      ]);
 
       const result = await repo.getMessages(chatId, { limit: 2, offset: 1 });
 
@@ -181,8 +198,12 @@ describe("SqliteRepository", () => {
     });
 
     it("should delete messages when chat is deleted", async () => {
-      await repo.addMessage(chatId, "user", [{ type: "text", text: "Message 1" }]);
-      await repo.addMessage(chatId, "assistant", [{ type: "text", text: "Message 2" }]);
+      await repo.addMessage(chatId, "user", [
+        { type: "text", text: "Message 1" },
+      ]);
+      await repo.addMessage(chatId, "assistant", [
+        { type: "text", text: "Message 2" },
+      ]);
 
       await repo.deleteChat(chatId, testUserId);
 
@@ -234,7 +255,12 @@ describe("SqliteRepository", () => {
     });
 
     it("should create an API key", async () => {
-      const key = await repo.createApiKey(userId, "hash123", "cck_abc", "My Key");
+      const key = await repo.createApiKey(
+        userId,
+        "hash123",
+        "cck_abc",
+        "My Key",
+      );
 
       expect(key).toBeDefined();
       expect(key.id).toBeDefined();
@@ -253,7 +279,12 @@ describe("SqliteRepository", () => {
     });
 
     it("should not find revoked API key by hash", async () => {
-      const key = await repo.createApiKey(userId, "hash123", "cck_abc", "My Key");
+      const key = await repo.createApiKey(
+        userId,
+        "hash123",
+        "cck_abc",
+        "My Key",
+      );
       await repo.revokeApiKey(key.id, userId);
       const found = await repo.getApiKeyByHash("hash123");
 
@@ -269,7 +300,12 @@ describe("SqliteRepository", () => {
     });
 
     it("should revoke an API key", async () => {
-      const key = await repo.createApiKey(userId, "hash123", "cck_abc", "My Key");
+      const key = await repo.createApiKey(
+        userId,
+        "hash123",
+        "cck_abc",
+        "My Key",
+      );
       const result = await repo.revokeApiKey(key.id, userId);
 
       expect(result).toBe(true);
@@ -279,7 +315,12 @@ describe("SqliteRepository", () => {
     });
 
     it("should update API key last used", async () => {
-      const key = await repo.createApiKey(userId, "hash123", "cck_abc", "My Key");
+      const key = await repo.createApiKey(
+        userId,
+        "hash123",
+        "cck_abc",
+        "My Key",
+      );
       await repo.updateApiKeyLastUsed(key.id);
 
       const keys = await repo.listApiKeys(userId);

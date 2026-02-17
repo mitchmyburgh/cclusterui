@@ -38,13 +38,14 @@ export class ConnectionManager {
     chatId: string,
     ws: any,
     userId: string,
-    info: { hostname: string; cwd: string; hitl?: boolean; mode?: AgentMode }
+    info: { hostname: string; cwd: string; hitl?: boolean; mode?: AgentMode },
   ): boolean {
     if (this.producers.has(chatId)) {
       return false; // Already has a producer
     }
 
-    const mode: AgentMode = info.mode || (info.hitl ? "human_confirm" : "accept_all");
+    const mode: AgentMode =
+      info.mode || (info.hitl ? "human_confirm" : "accept_all");
 
     this.producers.set(chatId, {
       ws,
@@ -209,7 +210,10 @@ export class ConnectionManager {
     }
   }
 
-  private safeSend(ws: any, event: WSServerToViewerEvent | WSServerToProducerEvent | WSProducerEvent): void {
+  private safeSend(
+    ws: any,
+    event: WSServerToViewerEvent | WSServerToProducerEvent | WSProducerEvent,
+  ): void {
     try {
       ws.send(JSON.stringify(event));
     } catch {

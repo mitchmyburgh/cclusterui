@@ -15,4 +15,8 @@ export const MAX_PAGE_SIZE = 100;
 export const MAX_WS_MESSAGE_SIZE = 1_000_000; // 1MB
 export const MAX_FILE_SEARCH_RESULTS = 50;
 export const MAX_FILE_SEARCH_QUERY_LENGTH = 500;
-export const VALID_AGENT_MODES = ["plan", "human_confirm", "accept_all"] as const;
+export const VALID_AGENT_MODES = [
+  "plan",
+  "human_confirm",
+  "accept_all",
+] as const;

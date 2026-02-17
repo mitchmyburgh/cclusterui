@@ -55,20 +55,20 @@ The server acts as a relay between viewers and producers. Viewers submit message
 
 All configuration is loaded from environment variables (via `dotenv`). See `src/config.ts` for the full `ServerConfig` interface.
 
-| Variable | Default | Description |
-|---|---|---|
-| `PORT` | `3000` | HTTP server port |
-| `HOST` | `0.0.0.0` | Bind address |
-| `JWT_SECRET` | _(none)_ | Secret for signing/verifying HS256 JWTs. If unset, JWT auth is disabled and a warning is logged. |
-| `API_KEYS` | _(none)_ | Comma-separated list of legacy API keys for backward-compatible auth |
-| `ALLOWED_USERNAMES` | _(none)_ | Comma-separated list of usernames permitted to register. If empty, registration is disabled. |
-| `DB_DRIVER` | `sqlite` | Database driver: `sqlite`, `postgres`, `mysql`, or `mongodb` |
-| `SQLITE_PATH` | `./data/claude-chat.db` | Path to the SQLite database file |
-| `POSTGRES_URL` | _(none)_ | PostgreSQL connection URL |
-| `MYSQL_URL` | _(none)_ | MySQL connection URL |
-| `MONGODB_URL` | _(none)_ | MongoDB connection URL |
-| `MONGODB_NAME` | _(none)_ | MongoDB database name |
-| `NODE_ENV` | _(none)_ | Set to `production` to serve static UI files from `./packages/ui/dist` |
+| Variable            | Default                 | Description                                                                                      |
+| ------------------- | ----------------------- | ------------------------------------------------------------------------------------------------ |
+| `PORT`              | `3000`                  | HTTP server port                                                                                 |
+| `HOST`              | `0.0.0.0`               | Bind address                                                                                     |
+| `JWT_SECRET`        | _(none)_                | Secret for signing/verifying HS256 JWTs. If unset, JWT auth is disabled and a warning is logged. |
+| `API_KEYS`          | _(none)_                | Comma-separated list of legacy API keys for backward-compatible auth                             |
+| `ALLOWED_USERNAMES` | _(none)_                | Comma-separated list of usernames permitted to register. If empty, registration is disabled.     |
+| `DB_DRIVER`         | `sqlite`                | Database driver: `sqlite`, `postgres`, `mysql`, or `mongodb`                                     |
+| `SQLITE_PATH`       | `./data/claude-chat.db` | Path to the SQLite database file                                                                 |
+| `POSTGRES_URL`      | _(none)_                | PostgreSQL connection URL                                                                        |
+| `MYSQL_URL`         | _(none)_                | MySQL connection URL                                                                             |
+| `MONGODB_URL`       | _(none)_                | MongoDB connection URL                                                                           |
+| `MONGODB_NAME`      | _(none)_                | MongoDB database name                                                                            |
+| `NODE_ENV`          | _(none)_                | Set to `production` to serve static UI files from `./packages/ui/dist`                           |
 
 Example `.env` file:
 
@@ -126,6 +126,7 @@ Error responses:
 No authentication required.
 
 **Response:**
+
 ```json
 { "status": "ok" }
 ```
@@ -141,6 +142,7 @@ These routes do not require authentication. They require `JWT_SECRET` to be conf
 Register a new user. The username must appear in the `ALLOWED_USERNAMES` list.
 
 **Request Body:**
+
 ```json
 {
   "username": "alice",
@@ -149,6 +151,7 @@ Register a new user. The username must appear in the `ALLOWED_USERNAMES` list.
 ```
 
 **Response (201):**
+
 ```json
 {
   "data": {
@@ -164,6 +167,7 @@ Register a new user. The username must appear in the `ALLOWED_USERNAMES` list.
 ```
 
 **Error Codes:**
+
 - `JWT_NOT_CONFIGURED` (500) -- `JWT_SECRET` is not set
 - `INVALID_INPUT` (400) -- Missing username or password
 - `REGISTRATION_DISABLED` (403) -- `ALLOWED_USERNAMES` is empty
@@ -175,6 +179,7 @@ Register a new user. The username must appear in the `ALLOWED_USERNAMES` list.
 Authenticate an existing user and receive a JWT.
 
 **Request Body:**
+
 ```json
 {
   "username": "alice",
@@ -183,6 +188,7 @@ Authenticate an existing user and receive a JWT.
 ```
 
 **Response (200):**
+
 ```json
 {
   "data": {
@@ -198,6 +204,7 @@ Authenticate an existing user and receive a JWT.
 ```
 
 **Error Codes:**
+
 - `JWT_NOT_CONFIGURED` (500) -- `JWT_SECRET` is not set
 - `INVALID_INPUT` (400) -- Missing username or password
 - `INVALID_CREDENTIALS` (401) -- Username not found or password mismatch
@@ -217,6 +224,7 @@ List chats for the authenticated user.
 | `offset` | `0` | Number of chats to skip |
 
 **Response (200):**
+
 ```json
 {
   "data": [
@@ -238,6 +246,7 @@ List chats for the authenticated user.
 Create a new chat.
 
 **Request Body:**
+
 ```json
 {
   "title": "My Chat"
@@ -245,6 +254,7 @@ Create a new chat.
 ```
 
 **Response (201):**
+
 ```json
 {
   "data": {
@@ -263,6 +273,7 @@ Create a new chat.
 Get a single chat by ID. Only the owning user can access it.
 
 **Response (200):**
+
 ```json
 {
   "data": {
@@ -277,6 +288,7 @@ Get a single chat by ID. Only the owning user can access it.
 ```
 
 **Error Codes:**
+
 - `NOT_FOUND` (404) -- Chat does not exist or belongs to a different user
 
 #### `PATCH /api/chats/:id`
@@ -284,6 +296,7 @@ Get a single chat by ID. Only the owning user can access it.
 Update a chat (e.g., rename it).
 
 **Request Body:**
+
 ```json
 {
   "title": "Renamed Chat"
@@ -293,6 +306,7 @@ Update a chat (e.g., rename it).
 **Response (200):** Updated chat object.
 
 **Error Codes:**
+
 - `NOT_FOUND` (404) -- Chat does not exist or belongs to a different user
 
 #### `DELETE /api/chats/:id`
@@ -302,6 +316,7 @@ Delete a chat and its messages.
 **Response:** `204 No Content`
 
 **Error Codes:**
+
 - `NOT_FOUND` (404) -- Chat does not exist or belongs to a different user
 
 ---
@@ -319,6 +334,7 @@ List messages in a chat. Requires ownership of the chat.
 | `offset` | `0` | Number of messages to skip |
 
 **Response (200):**
+
 ```json
 {
   "data": [
@@ -336,6 +352,7 @@ List messages in a chat. Requires ownership of the chat.
 ```
 
 **Error Codes:**
+
 - `NOT_FOUND` (404) -- Chat does not exist or belongs to a different user
 
 ---
@@ -349,6 +366,7 @@ API keys provide an alternative authentication method. Keys are prefixed with `c
 Generate a new API key for the authenticated user.
 
 **Request Body:**
+
 ```json
 {
   "name": "My CLI Key"
@@ -356,6 +374,7 @@ Generate a new API key for the authenticated user.
 ```
 
 **Response (201):**
+
 ```json
 {
   "data": {
@@ -380,6 +399,7 @@ The `rawKey` is returned only once at creation time. Store it securely.
 List all API keys for the authenticated user (raw keys are never returned).
 
 **Response (200):**
+
 ```json
 {
   "data": [
@@ -403,6 +423,7 @@ Revoke an API key. Revoked keys can no longer authenticate.
 **Response:** `204 No Content`
 
 **Error Codes:**
+
 - `NOT_FOUND` (404) -- Key does not exist or belongs to a different user
 
 ---
@@ -414,6 +435,7 @@ Revoke an API key. Revoked keys can no longer authenticate.
 Check whether a producer (local Claude agent) is currently connected to a chat's WebSocket.
 
 **Response (200):**
+
 ```json
 {
   "connected": true,
@@ -433,6 +455,7 @@ Or when no producer is connected:
 ```
 
 **Error Codes:**
+
 - `NOT_FOUND` (404) -- Chat does not exist or belongs to a different user
 
 ---
@@ -473,9 +496,7 @@ Submit a new user message to the chat.
 ```json
 {
   "type": "send_message",
-  "content": [
-    { "type": "text", "text": "Explain this code" }
-  ]
+  "content": [{ "type": "text", "text": "Explain this code" }]
 }
 ```
 
@@ -584,7 +605,11 @@ The final persisted assistant message, including metadata (cost, tokens, duratio
 The producer is invoking a tool.
 
 ```json
-{ "type": "tool_use", "toolName": "read_file", "toolInput": { "path": "/etc/hosts" } }
+{
+  "type": "tool_use",
+  "toolName": "read_file",
+  "toolInput": { "path": "/etc/hosts" }
+}
 ```
 
 #### `tool_approval_request`
@@ -617,7 +642,11 @@ Possible values: `thinking`, `tool_use`, `responding`, `idle`.
 An error occurred.
 
 ```json
-{ "type": "error", "error": "No local client connected.", "code": "NO_PRODUCER" }
+{
+  "type": "error",
+  "error": "No local client connected.",
+  "code": "NO_PRODUCER"
+}
 ```
 
 ---
@@ -626,16 +655,16 @@ An error occurred.
 
 Events sent **from the producer to the server**.
 
-| Event Type | Description |
-|---|---|
-| `heartbeat` | Keep-alive signal, must be sent at least every 45 seconds |
-| `message_start` | Signals the beginning of a new assistant response |
-| `message_delta` | Streaming text chunk |
-| `message_complete` | Final message with content and optional `sessionId`; the server persists this to the database |
-| `tool_use` | Notification that a tool is being invoked |
-| `tool_approval_request` | Requests viewer approval for a tool execution |
-| `status` | Current processing state update |
-| `error` | Reports an error to viewers |
+| Event Type              | Description                                                                                   |
+| ----------------------- | --------------------------------------------------------------------------------------------- |
+| `heartbeat`             | Keep-alive signal, must be sent at least every 45 seconds                                     |
+| `message_start`         | Signals the beginning of a new assistant response                                             |
+| `message_delta`         | Streaming text chunk                                                                          |
+| `message_complete`      | Final message with content and optional `sessionId`; the server persists this to the database |
+| `tool_use`              | Notification that a tool is being invoked                                                     |
+| `tool_approval_request` | Requests viewer approval for a tool execution                                                 |
+| `status`                | Current processing state update                                                               |
+| `error`                 | Reports an error to viewers                                                                   |
 
 The `message_complete` event is special: the server extracts the message content and metadata, persists it to the database via `repo.addMessage()`, updates the chat's `sessionId` if provided, and auto-titles untitled chats from the first response text.
 
@@ -787,13 +816,13 @@ src/
 
 ### Dependencies
 
-| Package | Purpose |
-|---|---|
-| `hono` | HTTP framework |
-| `@hono/node-server` | Node.js adapter for Hono |
-| `@hono/node-ws` | WebSocket support for Hono on Node.js |
-| `jose` | JWT signing and verification (HS256) |
-| `bcryptjs` | Password hashing for user registration/login |
-| `dotenv` | Environment variable loading |
-| `@mitchmyburgh/db` | Database repository abstraction (workspace dependency) |
-| `@mitchmyburgh/shared` | Shared types and constants (workspace dependency) |
+| Package                | Purpose                                                |
+| ---------------------- | ------------------------------------------------------ |
+| `hono`                 | HTTP framework                                         |
+| `@hono/node-server`    | Node.js adapter for Hono                               |
+| `@hono/node-ws`        | WebSocket support for Hono on Node.js                  |
+| `jose`                 | JWT signing and verification (HS256)                   |
+| `bcryptjs`             | Password hashing for user registration/login           |
+| `dotenv`               | Environment variable loading                           |
+| `@mitchmyburgh/db`     | Database repository abstraction (workspace dependency) |
+| `@mitchmyburgh/shared` | Shared types and constants (workspace dependency)      |

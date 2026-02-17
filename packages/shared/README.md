@@ -4,14 +4,14 @@ Shared type definitions and constants for the ccluster monorepo. This package is
 
 ## Package overview
 
-| Field       | Value                  |
-|-------------|------------------------|
-| Name        | `@mitchmyburgh/shared`  |
-| Version     | `0.0.1`                |
+| Field       | Value                    |
+| ----------- | ------------------------ |
+| Name        | `@mitchmyburgh/shared`   |
+| Version     | `0.0.1`                  |
 | Module      | ESM (`"type": "module"`) |
-| Entry point | `dist/index.js`        |
-| Types       | `dist/index.d.ts`      |
-| Test runner | Vitest                 |
+| Entry point | `dist/index.js`          |
+| Types       | `dist/index.d.ts`        |
+| Test runner | Vitest                   |
 
 ## Exports
 
@@ -19,30 +19,30 @@ Everything is re-exported from a single barrel file (`src/index.ts`), so consume
 
 ### Type modules
 
-| Module          | Source file              | Exports                                                                                   |
-|-----------------|--------------------------|-------------------------------------------------------------------------------------------|
-| **chat**        | `src/types/chat.ts`      | `Chat`, `CreateChatInput`, `UpdateChatInput`                                              |
-| **message**     | `src/types/message.ts`   | `MessageRole`, `MessageContent`, `Message`, `MessageMetadata`, `SendMessageInput`         |
-| **ws**          | `src/types/ws.ts`        | `ToolApprovalRequest`, `ToolApprovalResponse`, `WSViewerEvent`, `WSClientEvent` (deprecated), `WSServerToViewerEvent`, `WSServerEvent` (deprecated), `WSServerToProducerEvent`, `WSProducerEvent` |
-| **auth**        | `src/types/auth.ts`      | `AuthHeader`, `ApiError`, `AuthTokenPayload`                                              |
-| **api**         | `src/types/api.ts`       | `ApiResponse<T>`, `ApiListResponse<T>`, `PaginationParams`                                |
-| **user**        | `src/types/user.ts`      | `User`, `CreateUserInput`, `LoginInput`, `LoginResponse`, `RegisterResponse`              |
-| **api-key**     | `src/types/api-key.ts`   | `ApiKey`, `CreateApiKeyInput`, `CreateApiKeyResponse`                                     |
+| Module      | Source file            | Exports                                                                                                                                                                                           |
+| ----------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **chat**    | `src/types/chat.ts`    | `Chat`, `CreateChatInput`, `UpdateChatInput`                                                                                                                                                      |
+| **message** | `src/types/message.ts` | `MessageRole`, `MessageContent`, `Message`, `MessageMetadata`, `SendMessageInput`                                                                                                                 |
+| **ws**      | `src/types/ws.ts`      | `ToolApprovalRequest`, `ToolApprovalResponse`, `WSViewerEvent`, `WSClientEvent` (deprecated), `WSServerToViewerEvent`, `WSServerEvent` (deprecated), `WSServerToProducerEvent`, `WSProducerEvent` |
+| **auth**    | `src/types/auth.ts`    | `AuthHeader`, `ApiError`, `AuthTokenPayload`                                                                                                                                                      |
+| **api**     | `src/types/api.ts`     | `ApiResponse<T>`, `ApiListResponse<T>`, `PaginationParams`                                                                                                                                        |
+| **user**    | `src/types/user.ts`    | `User`, `CreateUserInput`, `LoginInput`, `LoginResponse`, `RegisterResponse`                                                                                                                      |
+| **api-key** | `src/types/api-key.ts` | `ApiKey`, `CreateApiKeyInput`, `CreateApiKeyResponse`                                                                                                                                             |
 
 ### Constants
 
 Defined in `src/constants.ts`:
 
-| Constant                 | Value                                                   | Purpose                                  |
-|--------------------------|---------------------------------------------------------|------------------------------------------|
-| `DEFAULT_CHAT_TITLE`     | `"New Chat"`                                            | Fallback title for newly created chats   |
-| `MAX_MESSAGE_LENGTH`     | `100_000`                                               | Maximum character count per message      |
-| `MAX_IMAGE_SIZE`         | `10 * 1024 * 1024` (10 MB)                              | Maximum image attachment size in bytes   |
-| `ALLOWED_IMAGE_TYPES`    | `["image/png", "image/jpeg", "image/gif", "image/webp"]`| Accepted MIME types for image uploads    |
-| `WS_PING_INTERVAL`       | `30_000` (30 s)                                         | Interval between WebSocket ping frames   |
-| `WS_HEARTBEAT_INTERVAL`  | `15_000` (15 s)                                         | Producer heartbeat send interval         |
-| `WS_HEARTBEAT_TIMEOUT`   | `45_000` (45 s)                                         | Time before a silent producer is dropped |
-| `DEFAULT_PAGE_SIZE`       | `50`                                                    | Default limit for paginated list queries |
+| Constant                | Value                                                    | Purpose                                  |
+| ----------------------- | -------------------------------------------------------- | ---------------------------------------- |
+| `DEFAULT_CHAT_TITLE`    | `"New Chat"`                                             | Fallback title for newly created chats   |
+| `MAX_MESSAGE_LENGTH`    | `100_000`                                                | Maximum character count per message      |
+| `MAX_IMAGE_SIZE`        | `10 * 1024 * 1024` (10 MB)                               | Maximum image attachment size in bytes   |
+| `ALLOWED_IMAGE_TYPES`   | `["image/png", "image/jpeg", "image/gif", "image/webp"]` | Accepted MIME types for image uploads    |
+| `WS_PING_INTERVAL`      | `30_000` (30 s)                                          | Interval between WebSocket ping frames   |
+| `WS_HEARTBEAT_INTERVAL` | `15_000` (15 s)                                          | Producer heartbeat send interval         |
+| `WS_HEARTBEAT_TIMEOUT`  | `45_000` (45 s)                                          | Time before a silent producer is dropped |
+| `DEFAULT_PAGE_SIZE`     | `50`                                                     | Default limit for paginated list queries |
 
 ## WebSocket event flow
 
@@ -118,12 +118,12 @@ The system uses a relay architecture. The **server** sits between two WebSocket 
 
 ### Event direction summary
 
-| Direction            | Type union                 | Event types                                                                                                 |
-|----------------------|----------------------------|-------------------------------------------------------------------------------------------------------------|
-| Viewer --> Server    | `WSViewerEvent`            | `send_message`, `cancel`, `tool_approval_response`                                                         |
-| Server --> Viewer    | `WSServerToViewerEvent`    | `message_start`, `message_delta`, `message_complete`, `tool_use`, `error`, `status`, `producer_status`, `user_message_stored`, `tool_approval_request` |
-| Server --> Producer  | `WSServerToProducerEvent`  | `process_message`, `cancel`, `tool_approval_response`                                                      |
-| Producer --> Server  | `WSProducerEvent`          | `message_start`, `message_delta`, `message_complete`, `tool_use`, `status`, `error`, `heartbeat`, `tool_approval_request` |
+| Direction           | Type union                | Event types                                                                                                                                            |
+| ------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Viewer --> Server   | `WSViewerEvent`           | `send_message`, `cancel`, `tool_approval_response`                                                                                                     |
+| Server --> Viewer   | `WSServerToViewerEvent`   | `message_start`, `message_delta`, `message_complete`, `tool_use`, `error`, `status`, `producer_status`, `user_message_stored`, `tool_approval_request` |
+| Server --> Producer | `WSServerToProducerEvent` | `process_message`, `cancel`, `tool_approval_response`                                                                                                  |
+| Producer --> Server | `WSProducerEvent`         | `message_start`, `message_delta`, `message_complete`, `tool_use`, `status`, `error`, `heartbeat`, `tool_approval_request`                              |
 
 ## Type reference
 
@@ -334,9 +334,7 @@ function validateMessage(text: string): boolean {
 }
 
 function validateImage(file: File): boolean {
-  return (
-    ALLOWED_IMAGE_TYPES.includes(file.type) && file.size <= MAX_IMAGE_SIZE
-  );
+  return ALLOWED_IMAGE_TYPES.includes(file.type) && file.size <= MAX_IMAGE_SIZE;
 }
 ```
 
@@ -389,7 +387,7 @@ npm run dev
 
 The following aliases are kept for backward compatibility and will be removed in a future release:
 
-| Deprecated name   | Replacement              |
-|-------------------|--------------------------|
-| `WSClientEvent`   | `WSViewerEvent`          |
-| `WSServerEvent`   | `WSServerToViewerEvent`  |
+| Deprecated name | Replacement             |
+| --------------- | ----------------------- |
+| `WSClientEvent` | `WSViewerEvent`         |
+| `WSServerEvent` | `WSServerToViewerEvent` |

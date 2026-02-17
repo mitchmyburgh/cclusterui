@@ -36,26 +36,26 @@ claude-chat-client --server <url> [options]
 
 ### Required flags
 
-| Flag | Description |
-|---|---|
+| Flag             | Description                                         |
+| ---------------- | --------------------------------------------------- |
 | `--server <url>` | ccluster server URL (e.g. `http://localhost:3000`). |
 
 ### Authentication (one of the following is required)
 
-| Flag | Description |
-|---|---|
-| `--api-key <key>` | A pre-existing API key or JWT token for the server. |
+| Flag                                  | Description                                                                                               |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `--api-key <key>`                     | A pre-existing API key or JWT token for the server.                                                       |
 | `--username <user> --password <pass>` | Log in with credentials. The client POSTs to `/api/auth/login` and uses the returned JWT for the session. |
 
 ### Optional flags
 
-| Flag | Default | Description |
-|---|---|---|
-| `--chat <id>` | *(create new)* | Chat ID to attach to. If omitted the client creates a new chat via `POST /api/chats`. |
-| `--anthropic-key <key>` | `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN` from env | Anthropic API key passed to the Agent SDK. |
-| `--cwd <path>` | `.` (current directory) | Working directory for all Claude file and shell operations. |
-| `--hitl` | disabled | Enable human-in-the-loop approval mode (see below). |
-| `--name <name>` | *(none)* | Set the chat title when creating a new chat. Ignored when `--chat` is provided. |
+| Flag                    | Default                                                   | Description                                                                           |
+| ----------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `--chat <id>`           | _(create new)_                                            | Chat ID to attach to. If omitted the client creates a new chat via `POST /api/chats`. |
+| `--anthropic-key <key>` | `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN` from env | Anthropic API key passed to the Agent SDK.                                            |
+| `--cwd <path>`          | `.` (current directory)                                   | Working directory for all Claude file and shell operations.                           |
+| `--hitl`                | disabled                                                  | Enable human-in-the-loop approval mode (see below).                                   |
+| `--name <name>`         | _(none)_                                                  | Set the chat title when creating a new chat. Ignored when `--chat` is provided.       |
 
 ### Examples
 
@@ -90,11 +90,11 @@ claude-chat-client \
 
 ## Environment Variables
 
-| Variable | Purpose |
-|---|---|
-| `ANTHROPIC_API_KEY` | Default Anthropic key when `--anthropic-key` is not provided. |
+| Variable                  | Purpose                                                                  |
+| ------------------------- | ------------------------------------------------------------------------ |
+| `ANTHROPIC_API_KEY`       | Default Anthropic key when `--anthropic-key` is not provided.            |
 | `CLAUDE_CODE_OAUTH_TOKEN` | Alternative Anthropic auth token (used if `ANTHROPIC_API_KEY` is unset). |
-| `CLAUDE_MODEL` | Override the model used by the Agent SDK. Defaults to `claude-opus-4-6`. |
+| `CLAUDE_MODEL`            | Override the model used by the Agent SDK. Defaults to `claude-opus-4-6`. |
 
 All current environment variables are forwarded to the Agent SDK process, so any tool that shells out (e.g. `Bash`) inherits your full environment.
 
@@ -137,12 +137,12 @@ Viewer (Web UI / TUI)
 
 ### Source files
 
-| File | Role |
-|---|---|
-| `src/cli.ts` | CLI entry point. Parses flags with `commander`, handles login, creates `LocalClient`, wires up graceful shutdown on `SIGTERM`/`SIGINT`. |
-| `src/local-client.ts` | `LocalClient` class. Manages the WebSocket lifecycle (connect, heartbeat, reconnect, disconnect), dispatches incoming server events, and sends producer events. |
+| File                   | Role                                                                                                                                                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/cli.ts`           | CLI entry point. Parses flags with `commander`, handles login, creates `LocalClient`, wires up graceful shutdown on `SIGTERM`/`SIGINT`.                                                     |
+| `src/local-client.ts`  | `LocalClient` class. Manages the WebSocket lifecycle (connect, heartbeat, reconnect, disconnect), dispatches incoming server events, and sends producer events.                             |
 | `src/claude-runner.ts` | `runClaude()` async generator. Wraps `@anthropic-ai/claude-agent-sdk`'s `query()` call, translates SDK events into `WSProducerEvent` values, and implements the HITL `canUseTool` callback. |
-| `src/index.ts` | Public API barrel file. Re-exports `LocalClient`, `LocalClientOptions`, `runClaude`, and `RunClaudeOptions`. |
+| `src/index.ts`         | Public API barrel file. Re-exports `LocalClient`, `LocalClientOptions`, `runClaude`, and `RunClaudeOptions`.                                                                                |
 
 ### WebSocket protocol
 
@@ -154,24 +154,24 @@ ws(s)://<server>/api/chats/<chatId>/ws?token=<jwt>&role=producer&hostname=<host>
 
 **Incoming events** (`WSServerToProducerEvent`):
 
-| Event | Description |
-|---|---|
-| `process_message` | A user sent a message. Contains `content`, `sessionId`, and `messageHistory`. Triggers a `runClaude()` invocation. |
-| `cancel` | Abort the running agent turn. |
-| `tool_approval_response` | The viewer approved or denied a pending tool (HITL mode only). |
+| Event                    | Description                                                                                                        |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `process_message`        | A user sent a message. Contains `content`, `sessionId`, and `messageHistory`. Triggers a `runClaude()` invocation. |
+| `cancel`                 | Abort the running agent turn.                                                                                      |
+| `tool_approval_response` | The viewer approved or denied a pending tool (HITL mode only).                                                     |
 
 **Outgoing events** (`WSProducerEvent`):
 
-| Event | Description |
-|---|---|
-| `status` | Status transitions: `thinking`, `tool_use`, `responding`, `idle`. |
-| `message_start` | Signals that a new assistant message is being generated. |
-| `message_delta` | Incremental text chunk from the model. |
-| `message_complete` | Final assembled message with metadata (cost, tokens, duration, model). Includes the `sessionId` for resume. |
-| `tool_use` | Claude is invoking a tool (name + input). |
-| `error` | Something went wrong during execution. |
-| `heartbeat` | Periodic keep-alive signal (every 15 s). |
-| `tool_approval_request` | Asks the viewer to approve a tool invocation (HITL mode only). |
+| Event                   | Description                                                                                                 |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `status`                | Status transitions: `thinking`, `tool_use`, `responding`, `idle`.                                           |
+| `message_start`         | Signals that a new assistant message is being generated.                                                    |
+| `message_delta`         | Incremental text chunk from the model.                                                                      |
+| `message_complete`      | Final assembled message with metadata (cost, tokens, duration, model). Includes the `sessionId` for resume. |
+| `tool_use`              | Claude is invoking a tool (name + input).                                                                   |
+| `error`                 | Something went wrong during execution.                                                                      |
+| `heartbeat`             | Periodic keep-alive signal (every 15 s).                                                                    |
+| `tool_approval_request` | Asks the viewer to approve a tool invocation (HITL mode only).                                              |
 
 ### Session resume
 
@@ -198,7 +198,10 @@ The package also exports its core classes for use from other Node.js code:
 
 ```ts
 import { LocalClient, runClaude } from "@mitchmyburgh/client";
-import type { LocalClientOptions, RunClaudeOptions } from "@mitchmyburgh/client";
+import type {
+  LocalClientOptions,
+  RunClaudeOptions,
+} from "@mitchmyburgh/client";
 ```
 
 - **`LocalClient`** -- instantiate with `LocalClientOptions`, call `.connect()` to start, `.disconnect()` to stop.

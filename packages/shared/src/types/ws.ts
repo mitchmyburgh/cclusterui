@@ -74,7 +74,12 @@ export type WSServerToViewerEvent =
     }
   | { type: "user_message_stored"; message: Message }
   | { type: "tool_approval_request"; request: ToolApprovalRequest }
-  | { type: "file_search_results"; results: FileSearchResult[]; query: string; searchType: "filename" | "content" };
+  | {
+      type: "file_search_results";
+      results: FileSearchResult[];
+      query: string;
+      searchType: "filename" | "content";
+    };
 
 /** @deprecated Use WSServerToViewerEvent */
 export type WSServerEvent = WSServerToViewerEvent;
@@ -113,5 +118,10 @@ export type WSProducerEvent =
   | { type: "error"; error: string; code?: string }
   | { type: "heartbeat" }
   | { type: "tool_approval_request"; request: ToolApprovalRequest }
-  | { type: "file_search_results"; results: FileSearchResult[]; query: string; searchType: "filename" | "content" }
+  | {
+      type: "file_search_results";
+      results: FileSearchResult[];
+      query: string;
+      searchType: "filename" | "content";
+    }
   | { type: "register_skills"; skills: Skill[] };

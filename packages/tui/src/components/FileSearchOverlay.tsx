@@ -12,7 +12,14 @@ interface Props {
   onClose: () => void;
 }
 
-export function FileSearchOverlay({ results, loading, searchType, onSearch, onSelect, onClose }: Props) {
+export function FileSearchOverlay({
+  results,
+  loading,
+  searchType,
+  onSearch,
+  onSelect,
+  onClose,
+}: Props) {
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [currentType, setCurrentType] = useState(searchType);
@@ -51,17 +58,34 @@ export function FileSearchOverlay({ results, loading, searchType, onSearch, onSe
   };
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor="blue" paddingX={1}>
+    <Box
+      flexDirection="column"
+      borderStyle="round"
+      borderColor="blue"
+      paddingX={1}
+    >
       <Box justifyContent="space-between">
-        <Text bold color="blue">File Search</Text>
+        <Text bold color="blue">
+          File Search
+        </Text>
         <Box gap={1}>
-          <Text color={currentType === "filename" ? "blue" : "gray"}>[Files]</Text>
-          <Text color={currentType === "content" ? "blue" : "gray"}>[Content]</Text>
+          <Text color={currentType === "filename" ? "blue" : "gray"}>
+            [Files]
+          </Text>
+          <Text color={currentType === "content" ? "blue" : "gray"}>
+            [Content]
+          </Text>
         </Box>
       </Box>
       <Box marginY={1}>
-        <Text bold color="blue">{"@ "}</Text>
-        <TextInput value={query} onChange={handleQueryChange} placeholder="Search..." />
+        <Text bold color="blue">
+          {"@ "}
+        </Text>
+        <TextInput
+          value={query}
+          onChange={handleQueryChange}
+          placeholder="Search..."
+        />
       </Box>
       {loading ? (
         <Text dimColor>Searching...</Text>
@@ -77,14 +101,16 @@ export function FileSearchOverlay({ results, loading, searchType, onSearch, onSe
               >
                 {result.path}
                 {result.lineNumber ? `:${result.lineNumber}` : ""}
-                {result.lineContent ? ` - ${result.lineContent.substring(0, 60)}` : ""}
+                {result.lineContent
+                  ? ` - ${result.lineContent.substring(0, 60)}`
+                  : ""}
               </Text>
             </Box>
           ))}
         </Box>
       )}
       <Box marginTop={1}>
-        <Text dimColor>Tab switch  Enter select  Esc close</Text>
+        <Text dimColor>Tab switch Enter select Esc close</Text>
       </Box>
     </Box>
   );

@@ -62,6 +62,7 @@ Shared types and constants are imported from the `@mitchmyburgh/shared` workspac
 ### Chat Components
 
 **`components/chat/ChatPanel.tsx`** -- The core chat component. For a given `chatId`, it:
+
 - Fetches message history from the REST API on mount.
 - Opens a WebSocket connection (via `useWebSocket`) to receive real-time events.
 - Handles the full event lifecycle: `message_start`, `message_delta`, `message_complete`, `user_message_stored`, `tool_use`, `status`, `producer_status`, `tool_approval_request`, and `error`.
@@ -69,6 +70,7 @@ Shared types and constants are imported from the `@mitchmyburgh/shared` workspac
 - Adds user messages optimistically (prefixed with `temp-`) and reconciles them when the server confirms storage.
 
 **`components/chat/ChatInput.tsx`** -- A composable text input with:
+
 - Auto-resizing `<textarea>` (up to 150px).
 - Image attachment via file picker button, clipboard paste (`onPaste`), or the file input's `onChange`.
 - Image preview thumbnails with individual remove buttons.
@@ -84,6 +86,7 @@ Shared types and constants are imported from the `@mitchmyburgh/shared` workspac
 ### Auth Components
 
 **`components/auth/LoginForm.tsx`** -- A tabbed form with three modes:
+
 - **Login** -- Username/password authentication against `POST /api/auth/login`.
 - **Register** -- New account creation against `POST /api/auth/register`.
 - **API Key** -- Direct API key entry for simplified access.
@@ -95,6 +98,7 @@ Shared types and constants are imported from the `@mitchmyburgh/shared` workspac
 **`components/settings/SettingsPanel.tsx`** -- Displays the current user's profile and, for JWT-authenticated users, the `<ApiKeyManager>`.
 
 **`components/settings/ApiKeyManager.tsx`** -- Full CRUD for API keys:
+
 - Lists existing keys with name, prefix, and revocation status.
 - Supports creating new keys (the raw key is shown once for copying).
 - Supports revoking active keys.
@@ -102,6 +106,7 @@ Shared types and constants are imported from the `@mitchmyburgh/shared` workspac
 ### Hooks
 
 **`hooks/useWebSocket.ts`** -- Custom hook encapsulating the WebSocket lifecycle:
+
 - Constructs the URL from the current page origin (`ws:` or `wss:`), chat ID, API key, and `role=viewer` query parameter.
 - Manages connection, auto-reconnect with exponential backoff, and cleanup on unmount.
 - Parses incoming JSON events and dispatches them via a stable callback ref.
@@ -123,6 +128,7 @@ The viewer can send three event types over the WebSocket:
 ### Context
 
 **`context/AuthContext.tsx`** -- React context providing authentication state to the entire app. Exposes:
+
 - `token` / `apiKey` -- The current auth token (JWT or API key).
 - `user` -- The authenticated user object (`{ id, username }`).
 - `isAuthenticated` -- Boolean derived from token presence.

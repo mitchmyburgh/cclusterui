@@ -30,12 +30,12 @@ claude-chat [options]
 
 ### Options
 
-| Flag | Description | Default |
-|---|---|---|
-| `-s, --server <url>` | Server URL | `CLAUDE_CHAT_SERVER` env var, or `http://localhost:3000` |
-| `-k, --api-key <key>` | API key (JWT) for authentication | `CLAUDE_CHAT_API_KEY` env var |
-| `-u, --username <name>` | Username for login (instead of API key) | -- |
-| `-p, --password <pass>` | Password for login (instead of API key) | -- |
+| Flag                    | Description                             | Default                                                  |
+| ----------------------- | --------------------------------------- | -------------------------------------------------------- |
+| `-s, --server <url>`    | Server URL                              | `CLAUDE_CHAT_SERVER` env var, or `http://localhost:3000` |
+| `-k, --api-key <key>`   | API key (JWT) for authentication        | `CLAUDE_CHAT_API_KEY` env var                            |
+| `-u, --username <name>` | Username for login (instead of API key) | --                                                       |
+| `-p, --password <pass>` | Password for login (instead of API key) | --                                                       |
 
 ### Authentication
 
@@ -67,13 +67,13 @@ The landing screen fetches all chats from the server and displays them in a navi
 
 **Keyboard shortcuts:**
 
-| Key | Action |
-|---|---|
-| Up / Down arrows | Navigate the chat list |
-| Enter | Open the selected chat |
-| `d` | Delete the selected chat |
-| `r` | Refresh the chat list |
-| `q` | Quit the application |
+| Key              | Action                   |
+| ---------------- | ------------------------ |
+| Up / Down arrows | Navigate the chat list   |
+| Enter            | Open the selected chat   |
+| `d`              | Delete the selected chat |
+| `r`              | Refresh the chat list    |
+| `q`              | Quit the application     |
 
 ### Chat View
 
@@ -87,9 +87,9 @@ Once a chat is selected, the Chat View opens a full conversation interface with 
 
 **Keyboard shortcuts:**
 
-| Key | Action |
-|---|---|
-| Enter | Send the current message |
+| Key    | Action                                                   |
+| ------ | -------------------------------------------------------- |
+| Enter  | Send the current message                                 |
 | Escape | Cancel a streaming response, or go back to the chat list |
 
 ### Real-time Streaming
@@ -148,16 +148,16 @@ packages/tui/
 
 ## Dependencies
 
-| Package | Purpose |
-|---|---|
-| `ink` (v5) | React renderer for terminal UIs |
-| `ink-spinner` | Animated loading spinners |
-| `ink-text-input` | Terminal text input component |
-| `commander` | CLI argument parsing |
-| `marked` | Markdown parser |
-| `marked-terminal` | Terminal renderer for marked |
-| `ws` | WebSocket client for Node.js |
-| `react` | Component model and hooks |
+| Package                | Purpose                                                      |
+| ---------------------- | ------------------------------------------------------------ |
+| `ink` (v5)             | React renderer for terminal UIs                              |
+| `ink-spinner`          | Animated loading spinners                                    |
+| `ink-text-input`       | Terminal text input component                                |
+| `commander`            | CLI argument parsing                                         |
+| `marked`               | Markdown parser                                              |
+| `marked-terminal`      | Terminal renderer for marked                                 |
+| `ws`                   | WebSocket client for Node.js                                 |
+| `react`                | Component model and hooks                                    |
 | `@mitchmyburgh/shared` | Shared types (Chat, Message, WS events, API response shapes) |
 
 ## Development

@@ -34,7 +34,7 @@ async function main() {
     },
     (info) => {
       console.log(`Server running at http://${info.address}:${info.port}`);
-    }
+    },
   );
 
   injectWebSocket(server);

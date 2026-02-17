@@ -80,7 +80,9 @@ export class PgRepository implements ChatRepository {
 
     // Migration: add user_id to chats if missing
     try {
-      await this.pool.query(`ALTER TABLE chats ADD COLUMN user_id TEXT NOT NULL DEFAULT 'system'`);
+      await this.pool.query(
+        `ALTER TABLE chats ADD COLUMN user_id TEXT NOT NULL DEFAULT 'system'`,
+      );
     } catch {
       // Column already exists
     }
@@ -132,7 +134,10 @@ export class PgRepository implements ChatRepository {
     };
   }
 
-  async listChats(userId: string, params?: PaginationParams): Promise<{ chats: Chat[]; total: number }> {
+  async listChats(
+    userId: string,
+    params?: PaginationParams,
+  ): Promise<{ chats: Chat[]; total: number }> {
     const limit = params?.limit ?? DEFAULT_PAGE_SIZE;
     const offset = params?.offset ?? 0;
 
@@ -164,7 +169,11 @@ export class PgRepository implements ChatRepository {
     };
   }
 
-  async updateChat(id: string, userId: string, input: UpdateChatInput): Promise<Chat | null> {
+  async updateChat(
+    id: string,
+    userId: string,
+    input: UpdateChatInput,
+  ): Promise<Chat | null> {
     const existing = await this.getChat(id, userId);
     if (!existing) {
       return null;
@@ -193,12 +202,18 @@ export class PgRepository implements ChatRepository {
     await this.db.delete(schema.messages).where(eq(schema.messages.chatId, id));
 
     // Delete chat
-    await this.db.delete(schema.chats).where(and(eq(schema.chats.id, id), eq(schema.chats.userId, userId)));
+    await this.db
+      .delete(schema.chats)
+      .where(and(eq(schema.chats.id, id), eq(schema.chats.userId, userId)));
 
     return true;
   }
 
-  async setChatSession(chatId: string, sessionId: string, userId: string): Promise<void> {
+  async setChatSession(
+    chatId: string,
+    sessionId: string,
+    userId: string,
+  ): Promise<void> {
     const updatedAt = new Date().toISOString();
 
     await this.db
@@ -216,7 +231,7 @@ export class PgRepository implements ChatRepository {
     chatId: string,
     role: "user" | "assistant",
     content: MessageContent[],
-    metadata?: MessageMetadata
+    metadata?: MessageMetadata,
   ): Promise<Message> {
     const now = new Date().toISOString();
     const message: Message = {
@@ -248,7 +263,7 @@ export class PgRepository implements ChatRepository {
 
   async getMessages(
     chatId: string,
-    params?: PaginationParams
+    params?: PaginationParams,
   ): Promise<{ messages: Message[]; total: number }> {
     const limit = params?.limit ?? DEFAULT_PAGE_SIZE;
     const offset = params?.offset ?? 0;
@@ -269,8 +284,18 @@ export class PgRepository implements ChatRepository {
     const messages: Message[] = results.map((row) => {
       let content: MessageContent[] = [];
       let metadata: MessageMetadata | undefined;
-      try { content = JSON.parse(row.content) as MessageContent[]; } catch { /* invalid JSON */ }
-      try { metadata = row.metadata ? (JSON.parse(row.metadata) as MessageMetadata) : undefined; } catch { /* invalid JSON */ }
+      try {
+        content = JSON.parse(row.content) as MessageContent[];
+      } catch {
+        /* invalid JSON */
+      }
+      try {
+        metadata = row.metadata
+          ? (JSON.parse(row.metadata) as MessageMetadata)
+          : undefined;
+      } catch {
+        /* invalid JSON */
+      }
       return {
         id: row.id,
         chatId: row.chatId,
@@ -301,8 +326,18 @@ export class PgRepository implements ChatRepository {
     const row = result[0];
     let content: MessageContent[] = [];
     let metadata: MessageMetadata | undefined;
-    try { content = JSON.parse(row.content) as MessageContent[]; } catch { /* invalid JSON */ }
-    try { metadata = row.metadata ? (JSON.parse(row.metadata) as MessageMetadata) : undefined; } catch { /* invalid JSON */ }
+    try {
+      content = JSON.parse(row.content) as MessageContent[];
+    } catch {
+      /* invalid JSON */
+    }
+    try {
+      metadata = row.metadata
+        ? (JSON.parse(row.metadata) as MessageMetadata)
+        : undefined;
+    } catch {
+      /* invalid JSON */
+    }
     return {
       id: row.id,
       chatId: row.chatId,
@@ -335,7 +370,9 @@ export class PgRepository implements ChatRepository {
     return user;
   }
 
-  async getUserByUsername(username: string): Promise<(User & { passwordHash: string }) | null> {
+  async getUserByUsername(
+    username: string,
+  ): Promise<(User & { passwordHash: string }) | null> {
     const result = await this.db
       .select()
       .from(schema.users)
@@ -372,7 +409,12 @@ export class PgRepository implements ChatRepository {
 
   // API key operations
 
-  async createApiKey(userId: string, keyHash: string, keyPrefix: string, name: string): Promise<ApiKey> {
+  async createApiKey(
+    userId: string,
+    keyHash: string,
+    keyPrefix: string,
+    name: string,
+  ): Promise<ApiKey> {
     const now = new Date().toISOString();
     const apiKey: ApiKey = {
       id: randomUUID(),
@@ -398,11 +440,18 @@ export class PgRepository implements ChatRepository {
     return apiKey;
   }
 
-  async getApiKeyByHash(keyHash: string): Promise<(ApiKey & { userId: string }) | null> {
+  async getApiKeyByHash(
+    keyHash: string,
+  ): Promise<(ApiKey & { userId: string }) | null> {
     const result = await this.db
       .select()
       .from(schema.apiKeys)
-      .where(and(eq(schema.apiKeys.keyHash, keyHash), isNull(schema.apiKeys.revokedAt)))
+      .where(
+        and(
+          eq(schema.apiKeys.keyHash, keyHash),
+          isNull(schema.apiKeys.revokedAt),
+        ),
+      )
       .limit(1);
 
     if (result.length === 0) return null;

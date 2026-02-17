@@ -98,10 +98,7 @@ export function ChatListView({ api, onSelectChat, onQuit }: Props) {
       ) : (
         chats.map((chat, i) => (
           <Box key={chat.id}>
-            <Text
-              color={i === cursor ? "blue" : undefined}
-              bold={i === cursor}
-            >
+            <Text color={i === cursor ? "blue" : undefined} bold={i === cursor}>
               {i === cursor ? "❯ " : "  "}
               {chat.title}
             </Text>

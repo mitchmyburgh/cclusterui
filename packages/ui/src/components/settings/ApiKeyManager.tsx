@@ -32,9 +32,12 @@ export function ApiKeyManager() {
     if (!newKeyName.trim()) return;
     setError("");
     try {
-      const res = await api.post<{ data: { apiKey: ApiKey; rawKey: string } }>("/api/keys", {
-        name: newKeyName.trim(),
-      });
+      const res = await api.post<{ data: { apiKey: ApiKey; rawKey: string } }>(
+        "/api/keys",
+        {
+          name: newKeyName.trim(),
+        },
+      );
       setNewRawKey(res.data.rawKey);
       setNewKeyName("");
       fetchKeys();
@@ -61,8 +64,12 @@ export function ApiKeyManager() {
 
       {newRawKey && (
         <div className="mb-4 rounded-md bg-emerald-50 border border-emerald-200 p-3">
-          <p className="text-sm text-emerald-700 mb-1">New API key created. Copy it now — it won't be shown again:</p>
-          <code className="block text-sm text-emerald-600 break-all select-all">{newRawKey}</code>
+          <p className="text-sm text-emerald-700 mb-1">
+            New API key created. Copy it now — it won't be shown again:
+          </p>
+          <code className="block text-sm text-emerald-600 break-all select-all">
+            {newRawKey}
+          </code>
           <button
             onClick={() => setNewRawKey(null)}
             className="mt-2 text-xs text-gray-500 hover:text-gray-700"
@@ -104,7 +111,9 @@ export function ApiKeyManager() {
             >
               <div>
                 <span className="text-sm text-gray-900">{key.name}</span>
-                <span className="ml-2 text-xs text-gray-500">{key.keyPrefix}...</span>
+                <span className="ml-2 text-xs text-gray-500">
+                  {key.keyPrefix}...
+                </span>
                 {key.revokedAt && (
                   <span className="ml-2 text-xs text-red-600">revoked</span>
                 )}

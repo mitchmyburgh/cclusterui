@@ -16,8 +16,12 @@ export function AppLayout() {
 
   // Fetch chats on mount
   useState(() => {
-    api.get<{ data: Chat[]; total: number }>("/api/chats")
-      .then((res) => { setChats(res.data); setLoading(false); })
+    api
+      .get<{ data: Chat[]; total: number }>("/api/chats")
+      .then((res) => {
+        setChats(res.data);
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   });
 
@@ -29,11 +33,14 @@ export function AppLayout() {
     });
   }, []);
 
-  const handleDeleteChat = useCallback(async (id: string) => {
-    await api.delete(`/api/chats/${id}`);
-    setChats((prev) => prev.filter((c) => c.id !== id));
-    setOpenPanels((prev) => prev.filter((p) => p !== id));
-  }, [api]);
+  const handleDeleteChat = useCallback(
+    async (id: string) => {
+      await api.delete(`/api/chats/${id}`);
+      setChats((prev) => prev.filter((c) => c.id !== id));
+      setOpenPanels((prev) => prev.filter((p) => p !== id));
+    },
+    [api],
+  );
 
   const handleClosePanel = useCallback((id: string) => {
     setOpenPanels((prev) => prev.filter((p) => p !== id));
@@ -64,7 +71,9 @@ export function AppLayout() {
         {user && user.username !== "system" && (
           <div className="border-b border-gray-200 px-4 py-2">
             <span className="text-xs text-gray-500">Signed in as </span>
-            <span className="text-xs text-gray-900 font-medium">{user.username}</span>
+            <span className="text-xs text-gray-900 font-medium">
+              {user.username}
+            </span>
           </div>
         )}
         <ChatList

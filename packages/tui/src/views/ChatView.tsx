@@ -1,7 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Box, Text, useInput } from "ink";
 import Spinner from "ink-spinner";
-import type { Chat, Message, WSServerToViewerEvent, AgentMode, FileSearchResult, Skill } from "@mitchmyburgh/shared";
+import type {
+  Chat,
+  Message,
+  WSServerToViewerEvent,
+  AgentMode,
+  FileSearchResult,
+  Skill,
+} from "@mitchmyburgh/shared";
 import type { ApiClient } from "../api.js";
 import { connectWs } from "../ws.js";
 import { MessageList } from "../components/MessageList.js";
@@ -31,11 +38,15 @@ export function ChatView({ api, serverUrl, apiKey, chat, onBack }: Props) {
   const [ws, setWs] = useState<ReturnType<typeof connectWs> | null>(null);
   const [inputValue, setInputValue] = useState("");
   const [showFileSearch, setShowFileSearch] = useState(false);
-  const [fileSearchResults, setFileSearchResults] = useState<FileSearchResult[]>([]);
+  const [fileSearchResults, setFileSearchResults] = useState<
+    FileSearchResult[]
+  >([]);
   const [fileSearchLoading, setFileSearchLoading] = useState(false);
   const [skills, setSkills] = useState<Skill[]>([]);
   const [showSkills, setShowSkills] = useState(false);
-  const [pendingImages, setPendingImages] = useState<Array<{ id: string; mimeType: string; dataUrl: string }>>([]);
+  const [pendingImages, setPendingImages] = useState<
+    Array<{ id: string; mimeType: string; dataUrl: string }>
+  >([]);
 
   useEffect(() => {
     api
@@ -118,7 +129,11 @@ export function ChatView({ api, serverUrl, apiKey, chat, onBack }: Props) {
   }, [chat.id, serverUrl, apiKey]);
 
   const MODES: AgentMode[] = ["plan", "human_confirm", "accept_all"];
-  const MODE_LABELS: Record<AgentMode, string> = { plan: "plan", human_confirm: "confirm", accept_all: "auto" };
+  const MODE_LABELS: Record<AgentMode, string> = {
+    plan: "plan",
+    human_confirm: "confirm",
+    accept_all: "auto",
+  };
 
   useInput((input, key) => {
     if (key.escape) {
@@ -128,13 +143,27 @@ export function ChatView({ api, serverUrl, apiKey, chat, onBack }: Props) {
         onBack();
       }
     }
-    if (input === "m" && !isStreaming && producerConnected && ws && !showFileSearch && !showSkills) {
+    if (
+      input === "m" &&
+      !isStreaming &&
+      producerConnected &&
+      ws &&
+      !showFileSearch &&
+      !showSkills
+    ) {
       const nextIdx = (MODES.indexOf(mode) + 1) % MODES.length;
       const nextMode = MODES[nextIdx];
       setMode(nextMode);
       ws.send({ type: "set_mode", mode: nextMode });
     }
-    if (input === "/" && !isStreaming && !showFileSearch && !showSkills && inputValue === "" && skills.length > 0) {
+    if (
+      input === "/" &&
+      !isStreaming &&
+      !showFileSearch &&
+      !showSkills &&
+      inputValue === "" &&
+      skills.length > 0
+    ) {
       setShowSkills(true);
     }
   });
@@ -143,10 +172,17 @@ export function ChatView({ api, serverUrl, apiKey, chat, onBack }: Props) {
     (text: string) => {
       if (!ws || !connected) return;
 
-      const content: Array<{ type: "text"; text: string } | { type: "image"; imageData: string; mimeType: string }> = [];
+      const content: Array<
+        | { type: "text"; text: string }
+        | { type: "image"; imageData: string; mimeType: string }
+      > = [];
       if (text.trim()) content.push({ type: "text", text });
       for (const img of pendingImages) {
-        content.push({ type: "image", imageData: img.dataUrl, mimeType: img.mimeType });
+        content.push({
+          type: "image",
+          imageData: img.dataUrl,
+          mimeType: img.mimeType,
+        });
       }
       if (content.length === 0) return;
 
@@ -166,20 +202,20 @@ export function ChatView({ api, serverUrl, apiKey, chat, onBack }: Props) {
       setInputValue("");
       setPendingImages([]);
     },
-    [ws, connected, chat.id, pendingImages]
+    [ws, connected, chat.id, pendingImages],
   );
 
-  const handleInputChange = useCallback(
-    (value: string) => {
-      setInputValue(value);
-      // Detect @ for file search
-      if (value.endsWith("@") && (value.length === 1 || value[value.length - 2] === " ")) {
-        setShowFileSearch(true);
-        setShowSkills(false);
-      }
-    },
-    []
-  );
+  const handleInputChange = useCallback((value: string) => {
+    setInputValue(value);
+    // Detect @ for file search
+    if (
+      value.endsWith("@") &&
+      (value.length === 1 || value[value.length - 2] === " ")
+    ) {
+      setShowFileSearch(true);
+      setShowSkills(false);
+    }
+  }, []);
 
   const handleFileSearch = useCallback(
     (query: string, searchType: "filename" | "content") => {
@@ -187,19 +223,24 @@ export function ChatView({ api, serverUrl, apiKey, chat, onBack }: Props) {
       setFileSearchLoading(true);
       ws.send({ type: "file_search", query, searchType });
     },
-    [ws]
+    [ws],
   );
 
   const handleFileSearchSelect = useCallback(
     (result: FileSearchResult) => {
-      const ref = result.lineNumber ? `@${result.path}#${result.lineNumber}` : `@${result.path}`;
+      const ref = result.lineNumber
+        ? `@${result.path}#${result.lineNumber}`
+        : `@${result.path}`;
       // Replace trailing @ with the selected reference
       const atIdx = inputValue.lastIndexOf("@");
-      const newValue = atIdx >= 0 ? inputValue.substring(0, atIdx) + ref + " " : inputValue + ref + " ";
+      const newValue =
+        atIdx >= 0
+          ? inputValue.substring(0, atIdx) + ref + " "
+          : inputValue + ref + " ";
       setInputValue(newValue);
       setShowFileSearch(false);
     },
-    [inputValue]
+    [inputValue],
   );
 
   const handleSkillInvoke = useCallback(
@@ -209,7 +250,7 @@ export function ChatView({ api, serverUrl, apiKey, chat, onBack }: Props) {
       setShowSkills(false);
       setInputValue("");
     },
-    [ws]
+    [ws],
   );
 
   const handlePaste = useCallback(async () => {
@@ -220,7 +261,11 @@ export function ChatView({ api, serverUrl, apiKey, chat, onBack }: Props) {
     } else if (result.type === "image" && result.imageData && result.mimeType) {
       setPendingImages((prev) => [
         ...prev,
-        { id: `img-${Date.now()}`, mimeType: result.mimeType!, dataUrl: result.imageData! },
+        {
+          id: `img-${Date.now()}`,
+          mimeType: result.mimeType!,
+          dataUrl: result.imageData!,
+        },
       ]);
     }
   }, []);
@@ -242,7 +287,15 @@ export function ChatView({ api, serverUrl, apiKey, chat, onBack }: Props) {
           {chat.title}
         </Text>
         <Box gap={1}>
-          <Text color={mode === "plan" ? "yellow" : mode === "human_confirm" ? "magenta" : "green"}>
+          <Text
+            color={
+              mode === "plan"
+                ? "yellow"
+                : mode === "human_confirm"
+                  ? "magenta"
+                  : "green"
+            }
+          >
             [{MODE_LABELS[mode]}]
           </Text>
           <Text color={producerConnected ? "green" : "red"}>
@@ -254,7 +307,10 @@ export function ChatView({ api, serverUrl, apiKey, chat, onBack }: Props) {
 
       {!producerConnected && (
         <Box marginBottom={1}>
-          <Text color="yellow">No local client connected. Run `claude-chat-client --chat {chat.id}` to start.</Text>
+          <Text color="yellow">
+            No local client connected. Run `claude-chat-client --chat {chat.id}`
+            to start.
+          </Text>
         </Box>
       )}
 
@@ -292,7 +348,9 @@ export function ChatView({ api, serverUrl, apiKey, chat, onBack }: Props) {
       {pendingImages.length > 0 && (
         <Box gap={1}>
           {pendingImages.map((img, idx) => (
-            <Text key={img.id} color="cyan">[Image {idx + 1}]</Text>
+            <Text key={img.id} color="cyan">
+              [Image {idx + 1}]
+            </Text>
           ))}
           <Text dimColor>(Backspace when input empty to remove)</Text>
         </Box>
@@ -307,7 +365,9 @@ export function ChatView({ api, serverUrl, apiKey, chat, onBack }: Props) {
       />
 
       <Box marginTop={1}>
-        <Text dimColor>Esc {isStreaming ? "cancel" : "back"}  m mode  / skills</Text>
+        <Text dimColor>
+          Esc {isStreaming ? "cancel" : "back"} m mode / skills
+        </Text>
       </Box>
     </Box>
   );

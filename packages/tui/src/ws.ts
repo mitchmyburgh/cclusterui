@@ -1,5 +1,8 @@
 import WebSocket from "ws";
-import type { WSViewerEvent, WSServerToViewerEvent } from "@mitchmyburgh/shared";
+import type {
+  WSViewerEvent,
+  WSServerToViewerEvent,
+} from "@mitchmyburgh/shared";
 
 export interface WsClient {
   send: (event: WSViewerEvent) => void;
@@ -13,11 +16,11 @@ export function connectWs(
   serverUrl: string,
   apiKey: string,
   chatId: string,
-  role: "viewer" | "producer" = "viewer"
+  role: "viewer" | "producer" = "viewer",
 ): WsClient {
   const wsUrl = serverUrl.replace(/^http/, "ws");
   const ws = new WebSocket(
-    `${wsUrl}/api/chats/${chatId}/ws?token=${encodeURIComponent(apiKey)}&role=${role}`
+    `${wsUrl}/api/chats/${chatId}/ws?token=${encodeURIComponent(apiKey)}&role=${role}`,
   );
 
   let eventHandler: ((event: WSServerToViewerEvent) => void) | null = null;

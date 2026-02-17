@@ -9,7 +9,13 @@ interface ChatListProps {
   loading: boolean;
 }
 
-export function ChatList({ chats, activeChatIds, onSelectChat, onDeleteChat, loading }: ChatListProps) {
+export function ChatList({
+  chats,
+  activeChatIds,
+  onSelectChat,
+  onDeleteChat,
+  loading,
+}: ChatListProps) {
   const [search, setSearch] = useState("");
 
   const filtered = search
@@ -48,17 +54,24 @@ export function ChatList({ chats, activeChatIds, onSelectChat, onDeleteChat, loa
                 key={chat.id}
                 onClick={() => onSelectChat(chat.id)}
                 className={`group flex cursor-pointer items-center justify-between px-4 py-3 transition-colors hover:bg-gray-100 ${
-                  isActive ? "bg-red-50 border-l-2 border-[#cb3837]" : "border-l-2 border-transparent"
+                  isActive
+                    ? "bg-red-50 border-l-2 border-[#cb3837]"
+                    : "border-l-2 border-transparent"
                 }`}
               >
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-gray-900">{chat.title}</p>
+                  <p className="truncate text-sm font-medium text-gray-900">
+                    {chat.title}
+                  </p>
                   <p className="text-xs text-gray-400">
                     {new Date(chat.updatedAt).toLocaleDateString()}
                   </p>
                 </div>
                 <button
-                  onClick={(e) => { e.stopPropagation(); onDeleteChat(chat.id); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteChat(chat.id);
+                  }}
                   className="ml-2 hidden rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-red-600 group-hover:block"
                 >
                   ✕

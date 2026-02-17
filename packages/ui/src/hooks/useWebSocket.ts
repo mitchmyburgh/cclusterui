@@ -1,7 +1,14 @@
 import { useRef, useState, useEffect, useCallback } from "react";
-import type { WSViewerEvent, WSServerToViewerEvent } from "@mitchmyburgh/shared";
+import type {
+  WSViewerEvent,
+  WSServerToViewerEvent,
+} from "@mitchmyburgh/shared";
 
-export function useWebSocket(chatId: string, apiKey: string, onEvent: (event: WSServerToViewerEvent) => void) {
+export function useWebSocket(
+  chatId: string,
+  apiKey: string,
+  onEvent: (event: WSServerToViewerEvent) => void,
+) {
   const wsRef = useRef<WebSocket | null>(null);
   const [connected, setConnected] = useState(false);
   const onEventRef = useRef(onEvent);
@@ -22,7 +29,10 @@ export function useWebSocket(chatId: string, apiKey: string, onEvent: (event: WS
       wsRef.current = ws;
 
       ws.onopen = () => {
-        if (cancelled) { ws.close(); return; }
+        if (cancelled) {
+          ws.close();
+          return;
+        }
         setConnected(true);
         reconnectAttempts = 0;
       };
@@ -32,7 +42,9 @@ export function useWebSocket(chatId: string, apiKey: string, onEvent: (event: WS
         try {
           const event: WSServerToViewerEvent = JSON.parse(evt.data);
           onEventRef.current(event);
-        } catch { /* ignore parse errors */ }
+        } catch {
+          /* ignore parse errors */
+        }
       };
 
       ws.onclose = () => {
@@ -41,7 +53,10 @@ export function useWebSocket(chatId: string, apiKey: string, onEvent: (event: WS
         wsRef.current = null;
         if (reconnectAttempts < 5) {
           const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
-          reconnectTimer = setTimeout(() => { reconnectAttempts++; connect(); }, delay);
+          reconnectTimer = setTimeout(() => {
+            reconnectAttempts++;
+            connect();
+          }, delay);
         }
       };
 

@@ -91,32 +91,32 @@ node packages/client/dist/cli.js \
 
 ## Packages
 
-| Package | Path | Description |
-|---------|------|-------------|
-| [`@mitchmyburgh/shared`](packages/shared) | `packages/shared` | Shared TypeScript types, constants, WebSocket event definitions |
-| [`@mitchmyburgh/db`](packages/db) | `packages/db` | Multi-database abstraction layer with Drizzle ORM (SQLite, PostgreSQL, MySQL, MongoDB) |
+| Package                                   | Path              | Description                                                                             |
+| ----------------------------------------- | ----------------- | --------------------------------------------------------------------------------------- |
+| [`@mitchmyburgh/shared`](packages/shared) | `packages/shared` | Shared TypeScript types, constants, WebSocket event definitions                         |
+| [`@mitchmyburgh/db`](packages/db)         | `packages/db`     | Multi-database abstraction layer with Drizzle ORM (SQLite, PostgreSQL, MySQL, MongoDB)  |
 | [`@mitchmyburgh/client`](packages/client) | `packages/client` | Local client -- runs Claude Agent SDK on your machine, connects to server via WebSocket |
-| [`@mitchmyburgh/server`](packages/server) | `packages/server` | Hono-based REST + WebSocket server -- auth, chat CRUD, message relay |
-| [`@mitchmyburgh/ui`](packages/ui) | `packages/ui` | React 19 web UI with Vite, Tailwind CSS v4, PWA support |
-| [`@mitchmyburgh/tui`](packages/tui) | `packages/tui` | Terminal UI built with Ink (React for CLI) |
+| [`@mitchmyburgh/server`](packages/server) | `packages/server` | Hono-based REST + WebSocket server -- auth, chat CRUD, message relay                    |
+| [`@mitchmyburgh/ui`](packages/ui)         | `packages/ui`     | React 19 web UI with Vite, Tailwind CSS v4, PWA support                                 |
+| [`@mitchmyburgh/tui`](packages/tui)       | `packages/tui`    | Terminal UI built with Ink (React for CLI)                                              |
 
 ## Environment Variables
 
 Configure the server via environment variables or a `.env` file in `packages/server`:
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PORT` | `3000` | Server listen port |
-| `HOST` | `0.0.0.0` | Server bind address |
-| `JWT_SECRET` | *(none)* | Secret for signing JWTs. If unset, JWT auth is disabled |
-| `API_KEYS` | *(none)* | Comma-separated list of valid static API keys |
-| `ALLOWED_USERNAMES` | *(none)* | Comma-separated list of usernames allowed to register/login |
-| `DB_DRIVER` | `sqlite` | Database backend: `sqlite`, `postgres`, `mysql`, or `mongodb` |
-| `SQLITE_PATH` | `./data/claude-chat.db` | Path to SQLite database file |
-| `POSTGRES_URL` | *(none)* | PostgreSQL connection string |
-| `MYSQL_URL` | *(none)* | MySQL connection string |
-| `MONGODB_URL` | *(none)* | MongoDB connection string |
-| `MONGODB_NAME` | *(none)* | MongoDB database name |
+| Variable            | Default                 | Description                                                   |
+| ------------------- | ----------------------- | ------------------------------------------------------------- |
+| `PORT`              | `3000`                  | Server listen port                                            |
+| `HOST`              | `0.0.0.0`               | Server bind address                                           |
+| `JWT_SECRET`        | _(none)_                | Secret for signing JWTs. If unset, JWT auth is disabled       |
+| `API_KEYS`          | _(none)_                | Comma-separated list of valid static API keys                 |
+| `ALLOWED_USERNAMES` | _(none)_                | Comma-separated list of usernames allowed to register/login   |
+| `DB_DRIVER`         | `sqlite`                | Database backend: `sqlite`, `postgres`, `mysql`, or `mongodb` |
+| `SQLITE_PATH`       | `./data/claude-chat.db` | Path to SQLite database file                                  |
+| `POSTGRES_URL`      | _(none)_                | PostgreSQL connection string                                  |
+| `MYSQL_URL`         | _(none)_                | MySQL connection string                                       |
+| `MONGODB_URL`       | _(none)_                | MongoDB connection string                                     |
+| `MONGODB_NAME`      | _(none)_                | MongoDB database name                                         |
 
 The client reads `ANTHROPIC_API_KEY` (or `CLAUDE_CODE_OAUTH_TOKEN`) from the environment, or accepts it via `--anthropic-key`.
 
@@ -149,23 +149,23 @@ The image exposes port **3000** and serves both the API and the built web UI sta
 
 ### Dockerfile stages
 
-| Stage | Purpose |
-|-------|---------|
-| `base` | `node:20-slim` with pnpm 9 enabled via corepack |
-| `deps` | Copies all `package.json` files and runs `pnpm install --frozen-lockfile` |
-| `build` | Copies source for shared, db, server, and ui; builds each in dependency order |
-| `runtime` | Copies only built `dist/` directories and `node_modules` — no source code |
+| Stage     | Purpose                                                                       |
+| --------- | ----------------------------------------------------------------------------- |
+| `base`    | `node:20-slim` with pnpm 9 enabled via corepack                               |
+| `deps`    | Copies all `package.json` files and runs `pnpm install --frozen-lockfile`     |
+| `build`   | Copies source for shared, db, server, and ui; builds each in dependency order |
+| `runtime` | Copies only built `dist/` directories and `node_modules` — no source code     |
 
 ### Deploy on Railway
 
 Railway auto-detects the Dockerfile. Create a new project and set these environment variables:
 
-| Variable | Value |
-|----------|-------|
-| `JWT_SECRET` | A random secret string |
-| `API_KEYS` | Comma-separated API keys for authentication |
-| `PORT` | `3000` (Railway sets this automatically via `$PORT`) |
-| `DB_DRIVER` | `postgres` (recommended for Railway) |
+| Variable       | Value                                                      |
+| -------------- | ---------------------------------------------------------- |
+| `JWT_SECRET`   | A random secret string                                     |
+| `API_KEYS`     | Comma-separated API keys for authentication                |
+| `PORT`         | `3000` (Railway sets this automatically via `$PORT`)       |
+| `DB_DRIVER`    | `postgres` (recommended for Railway)                       |
 | `POSTGRES_URL` | `${{Postgres.DATABASE_URL}}` (add a Postgres plugin first) |
 
 Steps:

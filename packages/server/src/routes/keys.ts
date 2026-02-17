@@ -9,7 +9,9 @@ keys.post("/keys", async (c) => {
   const repo = c.get("repo");
   const userId = c.get("userId");
 
-  const body = await c.req.json<{ name?: string }>().catch(() => ({ name: undefined }));
+  const body = await c.req
+    .json<{ name?: string }>()
+    .catch(() => ({ name: undefined }));
   const name = body.name || "Default";
 
   // Generate raw key: cck_ + 32 hex chars
@@ -19,12 +21,15 @@ keys.post("/keys", async (c) => {
 
   const apiKey = await repo.createApiKey(userId, keyHash, keyPrefix, name);
 
-  return c.json({
-    data: {
-      apiKey,
-      rawKey,
+  return c.json(
+    {
+      data: {
+        apiKey,
+        rawKey,
+      },
     },
-  }, 201);
+    201,
+  );
 });
 
 // GET /keys - list API keys
@@ -47,7 +52,7 @@ keys.delete("/keys/:id", async (c) => {
   if (!revoked) {
     return c.json(
       { error: "API key not found", code: "NOT_FOUND", status: 404 },
-      404
+      404,
     );
   }
 

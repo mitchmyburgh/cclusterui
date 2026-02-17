@@ -12,12 +12,28 @@ program
   .option("--chat <id>", "Chat ID to connect to (omit to create a new chat)")
   .option("--api-key <key>", "API key or JWT token (prefer CC_API_KEY env var)")
   .option("--username <username>", "Login with username (requires --password)")
-  .option("--password <password>", "Login with password (prefer CC_PASSWORD env var)")
-  .option("--anthropic-key <key>", "Anthropic API key (prefer ANTHROPIC_API_KEY env var)")
+  .option(
+    "--password <password>",
+    "Login with password (prefer CC_PASSWORD env var)",
+  )
+  .option(
+    "--anthropic-key <key>",
+    "Anthropic API key (prefer ANTHROPIC_API_KEY env var)",
+  )
   .option("--cwd <path>", "Working directory for Claude operations", ".")
-  .option("--hitl", "Enable human-in-the-loop approval (deprecated, use --mode human_confirm)")
-  .option("--mode <mode>", "Agent mode: plan, human_confirm, or accept_all", "accept_all")
-  .option("--name <name>", "Set the chat title (only used when creating a new chat)")
+  .option(
+    "--hitl",
+    "Enable human-in-the-loop approval (deprecated, use --mode human_confirm)",
+  )
+  .option(
+    "--mode <mode>",
+    "Agent mode: plan, human_confirm, or accept_all",
+    "accept_all",
+  )
+  .option(
+    "--name <name>",
+    "Set the chat title (only used when creating a new chat)",
+  )
   .parse(process.argv);
 
 const opts = program.opts();
@@ -29,13 +45,23 @@ async function main() {
   const anthropicKey = process.env.ANTHROPIC_API_KEY || opts.anthropicKey;
 
   if (opts.apiKey || opts.password) {
-    console.warn("WARNING: Passing secrets via CLI flags exposes them in process listings.");
-    console.warn("Prefer environment variables: CC_API_KEY, CC_PASSWORD, ANTHROPIC_API_KEY");
+    console.warn(
+      "WARNING: Passing secrets via CLI flags exposes them in process listings.",
+    );
+    console.warn(
+      "Prefer environment variables: CC_API_KEY, CC_PASSWORD, ANTHROPIC_API_KEY",
+    );
   }
 
   // Warn about HTTP (M12)
-  if (opts.server?.startsWith("http://") && !opts.server.includes("localhost") && !opts.server.includes("127.0.0.1")) {
-    console.warn("WARNING: Using unencrypted HTTP connection. Credentials may be transmitted in cleartext.");
+  if (
+    opts.server?.startsWith("http://") &&
+    !opts.server.includes("localhost") &&
+    !opts.server.includes("127.0.0.1")
+  ) {
+    console.warn(
+      "WARNING: Using unencrypted HTTP connection. Credentials may be transmitted in cleartext.",
+    );
   }
 
   // Login if username/password provided
@@ -72,7 +98,9 @@ async function main() {
   }
   const validModes = ["plan", "human_confirm", "accept_all"];
   if (!validModes.includes(agentMode)) {
-    console.error(`Error: Invalid mode "${agentMode}". Must be one of: ${validModes.join(", ")}`);
+    console.error(
+      `Error: Invalid mode "${agentMode}". Must be one of: ${validModes.join(", ")}`,
+    );
     process.exit(1);
   }
 
