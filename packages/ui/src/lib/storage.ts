@@ -1,7 +1,7 @@
-const TOKEN_STORAGE_KEY = "claude-chat-token";
-const USER_STORAGE_KEY = "claude-chat-user";
+const TOKEN_STORAGE_KEY = "ccluster-token";
+const USER_STORAGE_KEY = "ccluster-user";
 // Legacy key for backward compat
-const API_KEY_STORAGE_KEY = "claude-chat-api-key";
+const API_KEY_STORAGE_KEY = "ccluster-api-key";
 
 export interface StoredUser {
   id: string;

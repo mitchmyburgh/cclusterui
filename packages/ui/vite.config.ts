@@ -10,11 +10,11 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       manifest: {
-        name: "Claude Chat",
-        short_name: "Claude Chat",
-        description: "Multi-chat AI assistant powered by Claude",
-        theme_color: "#1a1a2e",
-        background_color: "#1a1a2e",
+        name: "CCluster",
+        short_name: "CCluster",
+        description: "Multi-chat AI assistant",
+        theme_color: "#cb3837",
+        background_color: "#ffffff",
         display: "standalone",
         orientation: "any",
         start_url: "/",

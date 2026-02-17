@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 import { createApiClient } from "../../lib/api";
 import { ChatList } from "../chat/ChatList";
 import { ChatPanel } from "../chat/ChatPanel";
@@ -8,6 +9,7 @@ import type { Chat } from "@mitchmyburgh/shared";
 
 export function AppLayout() {
   const { apiKey, user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const api = useMemo(() => createApiClient(apiKey!), [apiKey]);
   const [chats, setChats] = useState<Chat[]>([]);
   const [openPanels, setOpenPanels] = useState<string[]>([]);
@@ -47,31 +49,38 @@ export function AppLayout() {
   }, []);
 
   return (
-    <div className="flex h-screen bg-white text-gray-900">
+    <div className="flex h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {/* Sidebar */}
-      <aside className="flex w-80 flex-col border-r border-gray-200 bg-[#fafafa]">
-        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-          <h1 className="text-lg font-bold text-[#cb3837]">Claude Chat</h1>
+      <aside className="flex w-80 flex-col border-r border-gray-200 dark:border-gray-700 bg-[#fafafa] dark:bg-gray-800">
+        <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+          <h1 className="text-lg font-bold text-[#cb3837]">CCluster</h1>
           <div className="flex gap-2">
             <button
+              onClick={toggleTheme}
+              className="rounded-md bg-white dark:bg-gray-700 px-2 py-1.5 text-sm text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 hover:text-gray-900 dark:hover:text-white transition-colors"
+              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {theme === "dark" ? "☀️" : "🌙"}
+            </button>
+            <button
               onClick={() => setShowSettings(true)}
-              className="rounded-md bg-white px-3 py-1.5 text-sm text-gray-600 border border-gray-200 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+              className="rounded-md bg-white dark:bg-gray-700 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 hover:text-gray-900 dark:hover:text-white transition-colors"
               title="Settings"
             >
               Settings
             </button>
             <button
               onClick={logout}
-              className="rounded-md bg-white px-3 py-1.5 text-sm text-gray-600 border border-gray-200 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+              className="rounded-md bg-white dark:bg-gray-700 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               Logout
             </button>
           </div>
         </div>
         {user && user.username !== "system" && (
-          <div className="border-b border-gray-200 px-4 py-2">
-            <span className="text-xs text-gray-500">Signed in as </span>
-            <span className="text-xs text-gray-900 font-medium">
+          <div className="border-b border-gray-200 dark:border-gray-700 px-4 py-2">
+            <span className="text-xs text-gray-500 dark:text-gray-400">Signed in as </span>
+            <span className="text-xs text-gray-900 dark:text-gray-100 font-medium">
               {user.username}
             </span>
           </div>
@@ -92,7 +101,7 @@ export function AppLayout() {
             <SettingsPanel onClose={() => setShowSettings(false)} />
           </div>
         ) : openPanels.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center text-gray-400">
+          <div className="flex flex-1 items-center justify-center text-gray-400 dark:text-gray-500">
             <p>Start a local client to create a chat</p>
           </div>
         ) : (

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { useTheme } from "../../context/ThemeContext";
 
 interface LoginFormProps {
   onLogin: (token: string, user: { id: string; username: string }) => void;
@@ -8,6 +9,7 @@ interface LoginFormProps {
 type Tab = "login" | "register" | "apikey";
 
 export function LoginForm({ onLogin, onApiKey }: LoginFormProps) {
+  const { theme, toggleTheme } = useTheme();
   const [tab, setTab] = useState<Tab>("login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -66,13 +68,22 @@ export function LoginForm({ onLogin, onApiKey }: LoginFormProps) {
   ];
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-      <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-lg border border-gray-200">
-        <h1 className="mb-2 text-2xl font-bold text-gray-900">Claude Chat</h1>
-        <p className="mb-6 text-sm text-gray-500">Sign in to start chatting.</p>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+      <div className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800 p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">CCluster</h1>
+          <button
+            onClick={toggleTheme}
+            className="rounded-md px-2 py-1 text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
+          </button>
+        </div>
+        <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">Sign in to start chatting.</p>
 
         {/* Tabs */}
-        <div className="mb-6 flex rounded-md bg-gray-100 p-1">
+        <div className="mb-6 flex rounded-md bg-gray-100 dark:bg-gray-700 p-1">
           {tabs.map((t) => (
             <button
               key={t.key}
@@ -83,7 +94,7 @@ export function LoginForm({ onLogin, onApiKey }: LoginFormProps) {
               className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                 tab === t.key
                   ? "bg-[#cb3837] text-white"
-                  : "text-gray-500 hover:text-gray-900"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
               }`}
             >
               {t.label}
@@ -101,10 +112,10 @@ export function LoginForm({ onLogin, onApiKey }: LoginFormProps) {
                 setError("");
               }}
               placeholder="Enter API key..."
-              className="mb-3 w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 outline-none focus:border-[#cb3837] focus:ring-1 focus:ring-[#cb3837]"
+              className="mb-3 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-gray-900 dark:text-gray-100 placeholder-gray-400 outline-none focus:border-[#cb3837] focus:ring-1 focus:ring-[#cb3837]"
               autoFocus
             />
-            {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
+            {error && <p className="mb-3 text-sm text-red-600 dark:text-red-400">{error}</p>}
             <button
               type="submit"
               className="w-full rounded-md bg-[#cb3837] px-4 py-3 font-medium text-white hover:bg-[#b53130] transition-colors"
@@ -122,7 +133,7 @@ export function LoginForm({ onLogin, onApiKey }: LoginFormProps) {
                 setError("");
               }}
               placeholder="Username"
-              className="mb-3 w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 outline-none focus:border-[#cb3837] focus:ring-1 focus:ring-[#cb3837]"
+              className="mb-3 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-gray-900 dark:text-gray-100 placeholder-gray-400 outline-none focus:border-[#cb3837] focus:ring-1 focus:ring-[#cb3837]"
               autoFocus
               autoComplete="username"
             />
@@ -134,12 +145,12 @@ export function LoginForm({ onLogin, onApiKey }: LoginFormProps) {
                 setError("");
               }}
               placeholder="Password"
-              className="mb-3 w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 outline-none focus:border-[#cb3837] focus:ring-1 focus:ring-[#cb3837]"
+              className="mb-3 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-gray-900 dark:text-gray-100 placeholder-gray-400 outline-none focus:border-[#cb3837] focus:ring-1 focus:ring-[#cb3837]"
               autoComplete={
                 tab === "register" ? "new-password" : "current-password"
               }
             />
-            {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
+            {error && <p className="mb-3 text-sm text-red-600 dark:text-red-400">{error}</p>}
             <button
               type="submit"
               disabled={loading}

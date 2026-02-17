@@ -1,6 +1,6 @@
 {
   "cclusterui": {
-    "description": "Claude Chat – shared types, db, client, server, and UI",
+    "description": "CCluster – shared types, db, client, server, and UI",
     "processes": [
       { "title": "Shared", "cwd": "./packages/shared", "cmd": "pnpm dev" },
       { "title": "DB", "cwd": "./packages/db", "cmd": "pnpm dev" },

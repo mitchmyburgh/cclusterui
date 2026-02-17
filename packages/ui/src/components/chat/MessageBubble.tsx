@@ -14,7 +14,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         className={`max-w-[80%] rounded-lg px-4 py-2 ${
           isUser
             ? "bg-[#cb3837] text-white"
-            : "bg-gray-50 text-gray-900 border border-gray-100"
+            : "bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-100 dark:border-gray-700"
         }`}
       >
         {message.content.map((block, i) => {
@@ -30,7 +30,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
               );
             }
             return (
-              <div key={i} className="prose prose-sm max-w-none break-words">
+              <div key={i} className="prose prose-sm dark:prose-invert max-w-none break-words">
                 <ReactMarkdown>{block.text}</ReactMarkdown>
               </div>
             );
@@ -48,7 +48,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           return null;
         })}
         {message.metadata && (
-          <div className="mt-1 text-[10px] text-gray-400">
+          <div className="mt-1 text-[10px] text-gray-400 dark:text-gray-500">
             {message.metadata.model && <span>{message.metadata.model}</span>}
             {message.metadata.durationMs && (
               <span> · {(message.metadata.durationMs / 1000).toFixed(1)}s</span>

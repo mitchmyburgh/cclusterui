@@ -83,7 +83,7 @@ export function ChatListView({ api, onSelectChat, onQuit }: Props) {
     <Box flexDirection="column">
       <Box marginBottom={1}>
         <Text bold color="blue">
-          Claude Chat
+          CCluster
         </Text>
       </Box>
 

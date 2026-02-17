@@ -33,25 +33,25 @@ export function ToolApprovalDialog({
   const isLong = fullInput.length > 200;
 
   return (
-    <div className="mx-4 mb-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
+    <div className="mx-4 mb-3 rounded-lg border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-4">
       <div className="mb-2 flex items-center gap-2">
         <span className="inline-block h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-        <span className="text-sm font-semibold text-amber-700">
+        <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">
           Approval Required
         </span>
-        <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-800">
+        <span className="rounded bg-amber-100 dark:bg-amber-800/40 px-1.5 py-0.5 text-xs text-amber-800 dark:text-amber-200">
           {request.toolName}
         </span>
       </div>
 
       <div className="mb-3">
-        <pre className="max-h-40 overflow-auto rounded bg-gray-100 p-2 text-xs text-gray-700 whitespace-pre-wrap break-all">
+        <pre className="max-h-40 overflow-auto rounded bg-gray-100 dark:bg-gray-800 p-2 text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-all">
           {expanded || !isLong ? fullInput : summary}
         </pre>
         {isLong && (
           <button
             onClick={() => setExpanded(!expanded)}
-            className="mt-1 text-xs text-amber-600 hover:text-amber-700"
+            className="mt-1 text-xs text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300"
           >
             {expanded ? "Show less" : "Show full input"}
           </button>
@@ -67,13 +67,13 @@ export function ToolApprovalDialog({
         </button>
         <button
           onClick={() => onRespond(true, true)}
-          className="rounded bg-emerald-100 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-200 transition-colors"
+          className="rounded bg-emerald-100 dark:bg-emerald-800/40 px-3 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-700 transition-colors"
         >
           Always Allow {request.toolName}
         </button>
         <button
           onClick={() => onRespond(false)}
-          className="rounded bg-red-100 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-200 transition-colors"
+          className="rounded bg-red-100 dark:bg-red-800/40 px-3 py-1.5 text-xs font-medium text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-700 transition-colors"
         >
           Deny
         </button>

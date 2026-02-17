@@ -58,21 +58,21 @@ export function ApiKeyManager() {
 
   return (
     <div>
-      <h3 className="mb-4 text-lg font-semibold text-gray-900">API Keys</h3>
+      <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">API Keys</h3>
 
-      {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
+      {error && <p className="mb-3 text-sm text-red-600 dark:text-red-400">{error}</p>}
 
       {newRawKey && (
-        <div className="mb-4 rounded-md bg-emerald-50 border border-emerald-200 p-3">
-          <p className="text-sm text-emerald-700 mb-1">
+        <div className="mb-4 rounded-md bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700 p-3">
+          <p className="text-sm text-emerald-700 dark:text-emerald-300 mb-1">
             New API key created. Copy it now — it won't be shown again:
           </p>
-          <code className="block text-sm text-emerald-600 break-all select-all">
+          <code className="block text-sm text-emerald-600 dark:text-emerald-400 break-all select-all">
             {newRawKey}
           </code>
           <button
             onClick={() => setNewRawKey(null)}
-            className="mt-2 text-xs text-gray-500 hover:text-gray-700"
+            className="mt-2 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
           >
             Dismiss
           </button>
@@ -86,7 +86,7 @@ export function ApiKeyManager() {
           value={newKeyName}
           onChange={(e) => setNewKeyName(e.target.value)}
           placeholder="Key name..."
-          className="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#cb3837]"
+          className="flex-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 outline-none focus:border-[#cb3837]"
         />
         <button
           onClick={handleCreate}
@@ -99,29 +99,29 @@ export function ApiKeyManager() {
 
       {/* Key list */}
       {loading ? (
-        <p className="text-sm text-gray-500">Loading...</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Loading...</p>
       ) : keys.length === 0 ? (
-        <p className="text-sm text-gray-500">No API keys yet.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">No API keys yet.</p>
       ) : (
         <div className="space-y-2">
           {keys.map((key) => (
             <div
               key={key.id}
-              className="flex items-center justify-between rounded-md bg-gray-50 border border-gray-200 px-3 py-2"
+              className="flex items-center justify-between rounded-md bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-2"
             >
               <div>
-                <span className="text-sm text-gray-900">{key.name}</span>
-                <span className="ml-2 text-xs text-gray-500">
+                <span className="text-sm text-gray-900 dark:text-gray-100">{key.name}</span>
+                <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
                   {key.keyPrefix}...
                 </span>
                 {key.revokedAt && (
-                  <span className="ml-2 text-xs text-red-600">revoked</span>
+                  <span className="ml-2 text-xs text-red-600 dark:text-red-400">revoked</span>
                 )}
               </div>
               {!key.revokedAt && (
                 <button
                   onClick={() => handleRevoke(key.id)}
-                  className="text-xs text-red-600 hover:text-red-700"
+                  className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
                 >
                   Revoke
                 </button>

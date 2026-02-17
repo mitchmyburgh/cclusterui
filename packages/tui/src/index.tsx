@@ -6,7 +6,7 @@ import { App } from "./App.js";
 
 const program = new Command()
   .name("claude-chat")
-  .description("Terminal UI for Claude Chat")
+  .description("Terminal UI for CCluster")
   .option(
     "-s, --server <url>",
     "Server URL",
